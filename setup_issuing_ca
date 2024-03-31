@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+clear
+current_path=`pwd`
+script_path=`dirname $0`
+echo
+echo "- This script automates the creation of OpenSSL based Issuing CA."
+echo "- You're only required to input some information during setup."
+echo "- This script assumes that you've already setup a Root CA."
+echo
+echo -n "Enter Issuing CA name : "
+read ISSUING_CA_NAME
+
+ISSUING_CA_PATH=$HOME/CA
+CA_PATH=$ISSUING_CA_PATH/$ISSUING_CA_NAME
+
+mkdir -p $CA_PATH/{private,cert,issued_certs,crl,csr,data}
+chmod 700 $CA_PATH
+chmod 700 $CA_PATH/private
+openssl rand -hex -out $CA_PATH/private/.rand 16
+chmod 600 $CA_PATH/private/.rand
+touch $CA_PATH/data/index.dat
+openssl rand -hex -out $CA_PATH/data/serial.dat 8
+chmod 600 $CA_PATH/data/*
+echo "1000" > $CA_PATH/data/crl_number
+echo "directories and files for "$ISSUING_CA_NAME" setup successfully.".
+echo "---------------------------------------------------------------------"
+echo 
+
+WEB_URL=`hostname`
+
+cp $script_path/templateissuing $CA_PATH
+ISSUING_CNF=$CA_PATH/$ISSUING_CA_NAME
+mv $CA_PATH/templateissuing $ISSUING_CNF.cnf
+echo "Preparing configuration file for "$ISSUING_CA_NAME"."
+echo -n "Country (C)		: " 
+read ISSUING_C
+echo -n "State (ST)		: " 
+read ISSUING_ST
+echo -n "Location (L)		: " 
+read ISSUING_L
+echo -n "Organization (O)	: " 
+read ISSUING_O
+echo -n "Org. Unit (OU)		: " 
+read ISSUING_OU
+
+sed -i 's@ISSUING_HOME@'"$CA_PATH"'@' $ISSUING_CNF.cnf
+sed -i 's@ISSUING_NAME@'"$ISSUING_CA_NAME"'@' $ISSUING_CNF.cnf
+sed -i 's@COUNTRY@'"$ISSUING_C"'@' $ISSUING_CNF.cnf
+sed -i 's@STATE@'"$ISSUING_ST"'@' $ISSUING_CNF.cnf
+sed -i 's@LOCATION@'"$ISSUING_L"'@' $ISSUING_CNF.cnf
+sed -i 's@ORGANIZATION@'"$ISSUING_O"'@' $ISSUING_CNF.cnf
+sed -i 's@ORG_UNIT@'"$ISSUING_OU"'@' $ISSUING_CNF.cnf
+sed -i 's@ISSUING_NAME@'"$ISSUING_CA_NAME"'@' $ISSUING_CNF.cnf
+sed -i 's@WEBLINK@'"$WEB_URL"'@' $ISSUING_CNF.cnf
+
+echo "Configuration file for "$ISSUING_CA_NAME" ready."
+echo "---------------------------------------------------------------------"
+echo 
+echo "Select key type."
+echo "(1) for RSA. (default)"
+echo "(2) for ECDSA."
+echo -n "Key Type : "
+read KEY_TYPE
+
+if [ -z "$KEY_TYPE" ]
+then
+	KEY_TYPE=1
+fi
+
+if [ $KEY_TYPE -eq 1 ]
+then
+	echo -n "Key size (default 2048) : "
+	read RSA_KEY_SIZE
+	if [ -z "$RSA_KEY_SIZE" ] || [ "$RSA_KEY_SIZE" -lt 2048 ]
+	then
+		RSA_KEY_SIZE=2048
+	fi
+	openssl genpkey -algorithm rsa -pkeyopt rsa_keygen_bits:$RSA_KEY_SIZE -quiet | openssl pkcs8 -passout file:/etc/machine-id -topk8 -out $CA_PATH/private/$ISSUING_CA_NAME.key
+	if [ $? -ne 0 ]
+	then
+		exit 1
+	fi
+	chmod 400 $CA_PATH/private/$ISSUING_CA_NAME.key
+fi
+
+if [ $KEY_TYPE -eq 2 ]
+then
+	echo -n "ECDSA Curve (default secp384r1) : "
+	read EC_CURVE
+	if [ -z "$EC_CURVE" ]
+	then
+		EC_CURVE="secp384r1"
+	fi
+	openssl genpkey -algorithm ec -pkeyopt ec_paramgen_curve:$EC_CURVE | openssl pkcs8 -passout file:/etc/machine-id -topk8 -out $CA_PATH/private/$ISSUING_CA_NAME.key
+	if [ $? -ne 0 ]
+	then
+		exit 1
+	fi
+	chmod 400 $CA_PATH/private/$ISSUING_CA_NAME.key
+fi
+echo "Private key for $ISSUING_CA_NAME generated successfully."
+echo "---------------------------------------------------------------------"
+echo
+echo -n "Certificate validity (days, default 1825) : "
+read VALIDITY_DAYS
+
+if [ -z "$VALIDITY_DAYS" ]
+then
+	VALIDITY_DAYS=1825
+fi
+
+if [[ -z "${ROOT_CA_NAME}" ]]
+then
+	echo -n "Root CA name : "
+	read ROOT_CA_NAME
+fi
+if [[ -z "${ROOT_CA_PATH}" ]]
+then
+	echo -n "Root CA Path : "
+	read ROOT_CA_PATH
+fi
+
+if [ $ROOT_CA_PATH == "." ]
+then
+        ROOT_CA_PATH=$PWD/$ROOT_CA_NAME
+fi
+
+ROOT_CNF=$ROOT_CA_PATH/$ROOT_CA_NAME.cnf
+sed -i 's@ISSUING_NAME@'"$ISSUING_CA_NAME"'@' $ROOT_CNF
+sed -i 's@ROOT_NAME@'"$ROOT_CA_NAME"'@' $ISSUING_CNF.cnf
+openssl req -config $ROOT_CNF -new -sha256 -key $CA_PATH/private/$ISSUING_CA_NAME.key -passin file:/etc/machine-id -out $CA_PATH/csr/$ISSUING_CA_NAME.csr
+if [ $? -ne 0 ]
+then
+	exit 1
+fi
+
+openssl ca -config $ROOT_CNF -batch -passin file:/etc/machine-id -extensions intermediate_ca -days $VALIDITY_DAYS -notext -md sha256 -in $CA_PATH/csr/$ISSUING_CA_NAME.csr -out $CA_PATH/cert/$ISSUING_CA_NAME.cer
+if [ $? -ne 0 ]
+then
+        exit 1
+fi
+
+chmod 444 $CA_PATH/cert/$ISSUING_CA_NAME.cer
+openssl verify -CAfile $ROOT_CA_PATH/cert/$ROOT_CA_NAME.cer $CA_PATH/cert/$ISSUING_CA_NAME.cer
+cat $CA_PATH/cert/$ISSUING_CA_NAME.cer $ROOT_CA_PATH/cert/$ROOT_CA_NAME.cer > $CA_PATH/cert/cacert.cer
+chmod 444 $CA_PATH/cert/cacert.cer
+openssl ca -config $ISSUING_CNF.cnf -gencrl -passin file:/etc/machine-id -out $CA_PATH/crl/$ISSUING_CA_NAME.crl
+if [ $? -ne 0 ]
+then
+        exit 1
+fi
+echo
+echo "-----------------------------------------------------------"
+echo "Don't forget to export these environment variables."
+echo "export ISSUING_CA_NAME="$ISSUING_CA_NAME
+echo "export ISSUING_CA_PATH="$CA_PATH
+echo
+echo "or execute 'source $ISSUING_CA_PATH/setenv.sh'"
+echo 'export ISSUING_CA_NAME='$ISSUING_CA_NAME >> $ISSUING_CA_PATH/setenv.sh
+echo 'export ISSUING_CA_PATH='$CA_PATH >> $ISSUING_CA_PATH/setenv.sh
+echo 'export PATH='$PATH:$ISSUING_CA_PATH/bin >> $ISSUING_CA_PATH/setenv.sh
+echo "-----------------------------------------------------------"
+echo
+echo "ISSUING CA : ["$ISSUING_CA_NAME"] setup successfully."
+chmod 700 $ISSUING_CA_PATH/setenv.sh
+mkdir $ISSUING_CA_PATH/bin
+cp $script_path/bin/* $ISSUING_CA_PATH/bin
+cp $CA_PATH/cert/$ISSUING_CA_NAME.cer $ISSUING_CA_PATH/web/cert
+chmod 444 $ISSUING_CA_PATH/web/cert/$ISSUING_CA_NAME.cer
+cp $CA_PATH/crl/$ISSUING_CA_NAME.crl $ISSUING_CA_PATH/web/crl
+chmod 444 $ISSUING_CA_PATH/web/crl/$ISSUING_CA_NAME.crl
+chmod 500 $ISSUING_CA_PATH/bin/*

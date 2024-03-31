@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+echo
+echo "QUICK CA (v2024.04)"
+echo
+echo " - ca_examine_cert ......... : examine a CA issued certificate."
+echo " - ca_generate_cert ........ : generates a new private key with a signed certificate."
+echo " - ca_issue_ca_cert ........ : generates a certificate for another certificate authority."
+echo " - ca_issue_cert ........... : generates a CA signed certificate from a certificate request."
+echo " - ca_list_issued_certs .... : displays a list of all certificates issued by CA."
+echo " - ca_revoke_cert .......... : revoke an issued certificate."
+echo " - ca_help ................. : displays this help."
+echo

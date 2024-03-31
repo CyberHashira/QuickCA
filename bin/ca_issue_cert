@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ]
+then
+	echo
+	echo "QUICK CA (v2024.04) || [ ca_issue_cert ]"
+        echo "This utility issues a CA-Signed certificate using a certificate signing request (CSR)."
+	echo
+        echo "Syntax -"
+	echo "ca_issue_cert <csr_file> <certificate_file_name>"
+	echo "or"
+	echo "ca_issue_cert <csr_file>"
+	echo "or"
+	echo "ca_issue_cert"
+	echo
+        exit 0
+fi
+
+
+
+if [ -z $ISSUING_CA_PATH ] || [ -z $ISSUING_CA_NAME ]
+then
+        echo "ISSUING_CA_PATH environment variable not found. Please execute 'source "$HOME/CA/setenv.sh"'"
+        exit 1
+fi
+
+if [ -z $1 ] || [ ! -f $1 ]
+then
+	echo "can't read/find certificate request file."
+	exit 1
+fi
+
+CERTIFICATE_TYPE="None"
+echo
+echo "Certificate type to issue -"
+echo
+echo "[1] - Server certificate."
+echo "[2] - CodeSigning certificate."
+echo "[3] - User certificate."
+echo -n "Enter option : "
+read OPTION
+
+case $OPTION in
+1)
+	CERTIFICATE_TYPE="server_cert"
+	;;
+2)
+	CERTIFICATE_TYPE="codesigning_cert"
+	;;
+3)
+	CERTIFICATE_TYPE="user_cert"
+	;;
+*)
+	echo "Not a valid option."
+	;;
+esac
+
+echo -n "Validity (days) : "
+read DAYS
+
+if [ -z $2 ]
+then
+	openssl ca -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -batch -passin file:/etc/machine-id -extensions ${CERTIFICATE_TYPE} -days $DAYS -notext -md sha256 -in $1 -out OUTPUT.cer
+	echo "Certificate request signed. See OUTPUT.cer"
+else
+	openssl ca -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -batch -passin file:/etc/machine-id -extensions ${CERTIFICATE_TYPE} -days $DAYS -notext -md sha256 -in $1 -out $2
+fi
+
+echo

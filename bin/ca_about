@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+echo
+echo "QUICK CA (v2024.04)"
+echo
+echo " - This bash script was written by Cyber Hashira."
+echo " - The purpose of this script is to quickly set up a two-tier CA using OpenSSL."
+echo " - DO NOT USE IT for production; I repeat, DO NOT USE IT FOR PRODUCTION PURPOSES."
+echo " - I making this script publically available so feel free to modify this script."
+echo " - I've tested this script on Ubuntu Server 22.04, Rocky Linux 9.3, Alma Linux 9.3, Arch Linux and Raspberry Pi OS."
+echo

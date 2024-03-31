@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ]
+then
+        echo "QUICK CA (v2024.04) || [ ca_revoke_cert ]"
+        echo "This utility lets you revoke a certificate issued by your Issuing CA."
+        echo
+        echo "Syntax :-"
+        echo "ca_revoke_cert <serial_number>"
+        echo "or"
+        echo "ca_revoke_cert"
+        exit 0
+fi
+
+if [ -z $ISSUING_CA_PATH ] || [ -z $ISSUING_CA_NAME ]
+then
+        echo "ISSUING_CA_* environment variable not found. Please execute 'source "$HOME/CA/setenv.sh"'"
+        exit 1
+else
+	openssl ca -passin file:/etc/machine-id -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -gencrl -out $ISSUING_CA_PATH/crl/$ISSUING_CA_NAME.crl
+	if [ -z $1 ]
+	then
+		echo -n "Serial Number of the certificate to revoke : "
+		read SERIAL_NUMBER
+		openssl ca -passin file:/etc/machine-id -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -revoke $ISSUING_CA_PATH/issued_certs/$SERIAL_NUMBER.pem
+	else
+		openssl ca -passin file:/etc/machine-id -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -revoke $ISSUING_CA_PATH/issued_certs/$1.pem
+	fi
+	openssl ca -passin file:/etc/machine-id -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -gencrl -out $ISSUING_CA_PATH/crl/$ISSUING_CA_NAME.crl
+	chmod 744 $HOME/CA/web/crl/$ISSUING_CA_NAME.crl
+	cp $ISSUING_CA_PATH/crl/$ISSUING_CA_NAME.crl $HOME/CA/web/crl/
+	chmod 444 $HOME/CA/web/crl/$ISSUING_CA_NAME.crl
+fi
+echo 

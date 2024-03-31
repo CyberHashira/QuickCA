@@ -1,0 +1,227 @@
+#!/usr/bin/env bash
+
+script_path=`dirname $0`
+FULL_PATH="${script_path}"
+SUBJECT_STRING=""
+SAN=""
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ]
+then
+	echo 
+	echo "QUICK CA (v2024.04) || [ ca_generate_cert ]"
+        echo "This utility helps with generating a private key and a CA-signed certificate. It would output the result as a tarball that can be easily moved or transported to another machine."
+        echo "Syntax :-"
+        echo "ca_generate_cert"
+	echo
+        exit 0
+fi
+
+if [ -z $ISSUING_CA_PATH ]
+then
+	echo "ISSUING_CA_* environment variable not found."
+        echo "Please execute 'source $HOME/CA/setenv.sh'"
+        echo
+        exit 1
+fi
+
+dname_input() {
+	echo "-----------------------------------------"
+        echo -n "Common Name (CN) : "
+        read COMMON_NAME
+        if [ -z "$COMMON_NAME" ]
+        then
+                echo "Common name is required."
+                exit 1;
+        else
+                SUBJECT_STRING="/CN=${COMMON_NAME}"
+        fi
+
+        echo -n "Organization (O) : "
+        read ORGANIZATION_NAME
+        if [ -n "$ORGANIZATION_NAME" ]
+        then
+                SUBJECT_STRING+="/O=${ORGANIZATION_NAME}"
+        fi
+
+        echo -n "Organizational Unit (OU): "
+        read ORGANIZATIONAL_UNIT
+        if [ -n "$ORGANIZATIONAL_UNIT" ]
+        then
+                SUBJECT_STRING+="/OU=${ORGANIZATIONAL_UNIT}"
+        fi
+
+        echo -n "Location (L) : "
+        read LOCATION
+        if [ -n "$LOCATION" ]
+        then
+                SUBJECT_STRING+="/L=${LOCATION}"
+        fi
+
+        echo -n "State/Province (ST) : "
+        read STATE
+        if [ -n "$STATE" ]
+        then
+                SUBJECT_STRING+="/ST=${STATE}"
+        fi
+
+        echo -n "Country (C) : "
+        read COUNTRY
+        if [ -n "$COUNTRY" ]
+        then
+                SUBJECT_STRING+="/C=${COUNTRY}"
+        fi
+	echo "-----------------------------------------"
+}
+
+san_input() {
+	echo -n "Press [Y or y] to set SAN (Subject Alternate Name) : "
+	read CHOICE
+	if [ "$CHOICE" == "Y" ] || [ "$CHOICE" == "y" ]
+	then
+		echo "Some examples for valid input. -"
+		echo "  IP:10.0.0.100"
+		echo "  DNS:example.test"
+		echo "  IP:10.0.0.100,DNS:example.test"
+		echo "  IP:10.0.0.100,IP:192.168.1.100,DNS:example.text"
+		echo 
+		echo -n "SAN : "
+		read SAN
+		SAN="subjectAltName="$SAN
+	fi
+}
+
+package_certificate() {
+	echo 
+	echo "-----------------------------------------"
+	echo "Output as - "
+	echo 
+	echo "1. P7B and private key file."
+	echo "2. PFX file."
+	echo "3. Private key, signed certificate and CA certificates as seperate files."
+	echo "0. All of the above. (Default)"
+	echo -n "Option : "
+	read CHOICE
+	case $CHOICE in
+		1)
+			openssl crl2pkcs7 -nocrl -certfile $FRIENDLY_NAME.cer -certfile cacert.cer -out $FRIENDLY_NAME.p7b
+			tar czf $FRIENDLY_NAME.tar.gz $FRIENDLY_NAME.key $FRIENDLY_NAME.p7b
+			rm cacert.cer $FRIENDLY_NAME.key $FRIENDLY_NAME.cer cacert.cer $FRIENDLY_NAME.p7b -f
+			echo
+			echo "${FRIENDLY_NAME}.tar.gz ready for use."
+			;;
+		2)
+			echo "PFX PASSWORD - "
+			openssl pkcs12 -export -inkey $FRIENDLY_NAME.key -in $FRIENDLY_NAME.cer -certfile $ISSUING_CA_PATH/cert/cacert.cer -out $FRIENDLY_NAME.pfx
+			rm cacert.cer $FRIENDLY_NAME.key $FRIENDLY_NAME.cer -f
+			echo
+			echo "${FRIENDLY_NAME}.pfx ready for use."
+			;;
+		3)
+			tar czf $FRIENDLY_NAME.tar.gz $FRIENDLY_NAME.cer $FRIENDLY_NAME.key cacert.cer
+			rm cacert.cer $FRIENDLY_NAME.cer $FRIENDLY_NAME.key -f
+			echo
+			echo "${FRIENDLY_NAME}.tar.gz ready for use."
+			;;
+		*)
+			openssl pkcs12 -export -inkey $FRIENDLY_NAME.key -in $FRIENDLY_NAME.cer -certfile $ISSUING_CA_PATH/cert/cacert.cer -out $FRIENDLY_NAME.pfx
+                	openssl crl2pkcs7 -nocrl -certfile $FRIENDLY_NAME.cer -certfile cacert.cer -out $FRIENDLY_NAME.p7b
+                	tar czf $FRIENDLY_NAME.tar.gz $FRIENDLY_NAME.key $FRIENDLY_NAME.cer $FRIENDLY_NAME.pfx cacert.cer $FRIENDLY_NAME.p7b
+			rm cacert.cer $FRIENDLY_NAME.cer $FRIENDLY_NAME.pfx $FRIENDLY_NAME.p7b $FRIENDLY_NAME.key -f
+			echo
+			echo "${FRIENDLY_NAME}.tar.gz ready for use."
+			;;
+	esac
+}
+
+echo -n "Friendly Name : "
+read FRIENDLY_NAME
+echo
+echo "Type of key you want to use : "
+echo "1. RSA (default)."
+echo "2. ECDSA."
+echo -n "Option : "
+read OPTION
+
+if [ -z "$OPTION" ]
+then
+	OPTION=1
+fi
+
+if [ $OPTION -eq 1 ]
+then
+	echo -n "Key size (default 2048) : "
+	read KEYSIZE
+	if [ -z "$KEYSIZE" ]
+	then
+		KEYSIZE=2048
+	fi
+
+	echo 
+	echo "Enter Subject : "
+	dname_input
+	san_input
+	openssl genpkey -quiet -algorithm rsa -pkeyopt rsa_keygen_bits:2048 -pkeyopt rsa_keygen_pubexp:65537 -out $FRIENDLY_NAME.key
+	if [ $? -eq 0 ]
+	then
+
+		if [ -z "$SAN" ]
+		then
+			openssl req -new -subj "${SUBJECT_STRING}" -key $FRIENDLY_NAME.key -out $FRIENDLY_NAME.csr
+		else
+			openssl req -new -subj "${SUBJECT_STRING}" -key $FRIENDLY_NAME.key -addext "${SAN}" -out $FRIENDLY_NAME.csr
+		fi
+
+		if [ $? -ne 0 ]
+		then
+			rm $FRIENDLY_NAME.key
+			exit 1
+		fi
+	else
+		exit 1;
+	fi
+
+	$FULL_PATH/ca_issue_cert $FRIENDLY_NAME.csr $FRIENDLY_NAME.cer
+	if [ $? -eq 0 ]
+	then
+		rm $FRIENDLY_NAME.csr
+		cp $ISSUING_CA_PATH/cert/cacert.cer .
+		package_certificate
+	fi
+else
+	echo -n "Curve (default secp256k1) : "
+	read CURVE
+	if [ -z "$CURVE" ]
+	then
+		CURVE="secp256k1"
+	fi
+	echo
+	echo "Enter Subject : "
+	dname_input
+	san_input
+	openssl genpkey -quiet -algorithm ec -pkeyopt ec_paramgen_curve:$CURVE -out $FRIENDLY_NAME.key
+	if [ $? -eq 0 ]
+	then
+		if [ -z $SAN ]
+		then
+			openssl req -new -subj "${SUBJECT_STRING}" -key $FRIENDLY_NAME.key -out $FRIENDLY_NAME.csr
+		else
+			openssl req -new -subj "${SUBJECT_STRING}" -key $FRIENDLY_NAME.key -addext "${SAN}" -out $FRIENDLY_NAME.csr
+		fi
+
+		if [ $? -ne 0 ]
+		then
+			rm $FRIENDLY_NAME.key
+			exit 1
+		fi
+	else
+		exit 1;
+	fi
+	$FULL_PATH/ca_issue_cert $FRIENDLY_NAME.csr $FRIENDLY_NAME.cer
+	if [ $? -eq 0 ]
+	then
+		rm $FRIENDLY_NAME.csr
+		cp $ISSUING_CA_PATH/cert/cacert.cer .
+		package_certificate
+	fi
+fi
+echo

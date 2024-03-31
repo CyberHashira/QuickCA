@@ -1,0 +1,82 @@
+[ ca ]
+default_ca = CA_default
+
+[ CA_default ]
+dir               = ROOT_HOME
+certs             = $dir/cert
+crl_dir           = $dir/crl
+new_certs_dir     = $dir/issued_certs
+database          = $dir/data/index.dat
+serial            = $dir/data/serial.dat
+RANDFILE          = $dir/private/.rand
+private_key       = $dir/private/ROOT_NAME.key
+certificate       = $dir/cert/ROOT_NAME.cer
+crlnumber         = $dir/data/crl_number
+crl               = $dir/crl/ROOT_NAME.crl
+crl_extensions    = crl_ext
+default_crl_days  = 180
+default_md        = sha256
+name_opt          = ca_default
+cert_opt          = ca_default
+default_days      = 3650
+preserve          = no
+policy            = policy_strict
+
+[ policy_strict ]
+countryName             = match
+stateOrProvinceName     = match
+organizationName        = match
+organizationalUnitName  = optional
+commonName              = supplied
+emailAddress            = optional
+
+[ policy_loose ]
+countryName             = optional
+stateOrProvinceName     = optional
+localityName            = optional
+organizationName        = optional
+organizationalUnitName  = optional
+commonName              = supplied
+emailAddress            = optional
+
+[ req ]
+default_bits        = 2048
+distinguished_name  = req_distinguished_name
+string_mask         = utf8only
+default_md          = sha256
+x509_extensions     = root_ca
+
+[ req_distinguished_name ]
+countryName                     = Country Name (2 letter code)
+stateOrProvinceName             = State or Province Name
+localityName                    = Locality Name
+0.organizationName              = Organization Name
+organizationalUnitName          = Organizational Unit Name
+commonName                      = Common Name
+emailAddress                    = Email Address
+
+countryName_default             = COUNTRY
+stateOrProvinceName_default     = STATE
+localityName_default            = LOCATION
+0.organizationName_default      = ORGANIZATION
+organizationalUnitName_default  = ORG_UNIT
+emailAddress_default            = 
+
+[ root_ca ]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+basicConstraints = critical, CA:true, pathlen:1
+crlDistributionPoints = URI:http://WEBLINK:8000/crl/ROOT_NAME.crl
+
+
+[ intermediate_ca ]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+crlDistributionPoints = URI:http://WEBLINK:8000/crl/ISSUING_NAME.crl
+authorityInfoAccess = caIssuers;URI:http://WEBLINK:8000/cert/ROOT_NAME.cer
+
+[ crl_ext ]
+authorityKeyIdentifier=keyid:always

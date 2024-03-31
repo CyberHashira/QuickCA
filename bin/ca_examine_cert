@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ]
+then
+	echo
+	echo "QUICK CA (v2024.04) || [ ca_examine_cert ]"
+	echo "This utility lets you view a certificate issued by your Issuing CA."
+	echo
+	echo "Syntax :-"
+	echo "ca_examine_cert <serial_number>"
+	echo "or"
+	echo "ca_examine_cert"
+	echo
+	exit 0
+fi
+
+if [ -z $ISSUING_CA_PATH ]
+then
+	echo "ISSUING_CA_* environment variable not found."
+	echo "Please execute 'source $HOME/CA/setenv.sh'."
+	echo
+        exit 1
+fi
+
+if [ -z "$1" ]
+then
+        echo -n "Enter serial number of certificate to examine : "
+        read SERIAL
+        openssl x509 -noout -text -in $ISSUING_CA_PATH/issued_certs/$SERIAL.pem
+else
+	if [ -f $ISSUING_CA_PATH/issued_certs/$1.pem ]
+	then
+        	openssl x509 -noout -text -in $ISSUING_CA_PATH/issued_certs/$1.pem
+	else
+		echo "Certificate not found or incorrect option passed."
+	fi
+fi

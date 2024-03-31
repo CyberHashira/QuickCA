@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ]
+then
+	echo
+	echo "QUICK CA (v2024.04) || [ ca_issue_ca_cert ]"
+        echo "This utility lets you issue an issuing CA certificate using your Root CA."
+	echo
+        echo "Syntax -"
+        echo "ca_issue_ca_cert [ certificate_request_file ] [ days_valid_for ] [ output_certificate_file_name ]"
+	echo " > certificate_request_file : This is the file containing certificate request."
+	echo " > days_valid_for : number of days, the issued certificate should be valid for."
+	echo " > output_certificate_file_name : file name to output the issued certificate. If no name is given then the default file OUTPUT.CER is used."
+	echo
+        exit 0
+fi
+
+if [ -z $ROOT_CA_PATH ] || [ -z $ROOT_CA_NAME ]
+then
+	echo "ROOT_CA_* environment variable not found."
+	echo "Please execute 'source $HOME/CA/setenv.sh'."
+	echo
+	exit 1
+fi
+
+if [ -z $1 ] || [ ! -f $1 ]
+then
+	echo "can't read/find certificate request file."
+	echo "See ca_issue_ca_cert -h or ca_issue_ca_cert --help"
+	echo
+	exit 1
+fi
+
+if [ -z $2 ]
+then
+	echo "Missing the value for validity period."
+	echo "See ca_issue_ca_cert -h or ca_issue_ca_cert --help"
+	echo
+	exit 1
+fi
+
+if [ -z $3 ]
+	openssl ca -config "$ROOT_CA_PATH/$ROOT_CA_NAME".cnf -passin file:/etc/machine-id -extensions intermediate_ca -days $2 -notext -md sha256 -in $1 -out OUTPUT.cer
+else
+	openssl ca -config "$ROOT_CA_PATH/$ROOT_CA_NAME".cnf -passin file:/etc/machine-id -extensions intermediate_ca -days $2 -notext -md sha256 -in $1 -out $3.cer
+fi
+echo
+

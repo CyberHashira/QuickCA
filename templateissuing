@@ -1,0 +1,106 @@
+[ ca ]
+default_ca = CA_default
+
+[ CA_default ]
+dir               = ISSUING_HOME
+certs             = $dir/cert
+crl_dir           = $dir/crl
+new_certs_dir     = $dir/issued_certs
+database          = $dir/data/index.dat
+serial            = $dir/data/serial.dat
+RANDFILE          = $dir/private/.rand
+private_key       = $dir/private/ISSUING_NAME.key
+certificate       = $dir/cert/ISSUING_NAME.cer
+crlnumber         = $dir/data/crl_number
+crl               = $dir/crl/ISSUING_NAME.crl
+crl_extensions    = crl_ext
+default_crl_days  = 180
+default_md        = sha256
+name_opt          = ca_default
+cert_opt          = ca_default
+default_days      = 1825
+preserve          = no
+copy_extensions   = copy
+policy            = policy_loose
+
+[ policy_strict ]
+countryName             = match
+stateOrProvinceName     = match
+organizationName        = match
+organizationalUnitName  = optional
+commonName              = supplied
+emailAddress            = optional
+
+[ policy_loose ]
+countryName             = optional
+stateOrProvinceName     = optional
+localityName            = optional
+organizationName        = optional
+organizationalUnitName  = optional
+commonName              = supplied
+emailAddress            = optional
+
+[ req ]
+default_bits        = 2048
+distinguished_name  = req_distinguished_name
+string_mask         = utf8only
+default_md          = sha256
+x509_extensions     = user_cert
+
+[ req_distinguished_name ]
+countryName                     = Country Name (2 letter code)
+stateOrProvinceName             = State or Province Name
+localityName                    = Locality Name
+0.organizationName              = Organization Name
+organizationalUnitName          = Organizational Unit Name
+commonName                      = Common Name
+emailAddress                    = Email Address
+
+countryName_default             = COUNTRY
+stateOrProvinceName_default     = STATE
+localityName_default            = LOCATION
+0.organizationName_default      = ORGANIZATION
+organizationalUnitName_default  = ORG_UNIT
+emailAddress_default            = 
+
+[ user_cert ]
+basicConstraints = CA:FALSE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = clientAuth, emailProtection
+crlDistributionPoints = URI:http://WEBLINK:8000/crl/ISSUING_NAME.crl
+authorityInfoAccess = @aia
+
+[ server_cert ]
+basicConstraints = CA:FALSE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer:always
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+crlDistributionPoints = URI:http://WEBLINK:8000/crl/ISSUING_NAME.crl
+authorityInfoAccess = @aia
+
+[ codesigning_cert ]
+basicConstraints = CA:FALSE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer:always
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = codeSigning
+crlDistributionPoints = URI:http://WEBLINK:8000/crl/ISSUING_NAME.crl
+authorityInfoAccess = @aia
+
+[ crl_ext ]
+authorityKeyIdentifier=keyid:always
+authorityInfoAccess = caIssuers;URI:http://WEBLINK:8000/cert/ISSUING_NAME.cer
+
+[ ocsp ]
+basicConstraints = CA:FALSE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+keyUsage = critical, digitalSignature
+extendedKeyUsage = critical, OCSPSigning
+
+[ aia ]
+caIssuers;URI = http://WEBLINK:8000/cert/ISSUING_NAME.cer
+OCSP;URI = http://WEBLINK-ocsp.lab
