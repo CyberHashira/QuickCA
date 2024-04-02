@@ -3,7 +3,7 @@
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
 	echo
-	echo "QUICK CA (v2024.04) || [ ca_list_issued_certs ]"
+	echo "QUICK CA (2024.03) || [ ca_list_issued_certs ]"
         echo "This utility displays a list of all certificates issued by the issuing CA. Certificate marked as 'R' are revoked certificates."
         echo
         exit 0

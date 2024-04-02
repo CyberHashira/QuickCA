@@ -3,7 +3,7 @@
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
 	echo
-	echo "QUICK CA (v2024.04) || [ ca_issue_cert ]"
+	echo "QUICK CA (2024.03) || [ ca_issue_cert ]"
         echo "This utility issues a CA-Signed certificate using a certificate signing request (CSR)."
 	echo
         echo "Syntax -"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 echo
-echo "QUICK CA (v2024.04)"
+echo "QUICK CA (2024.03)"
 echo
 echo " - This bash script was written by Cyber Hashira."
 echo " - The purpose of this script is to quickly set up a two-tier CA using OpenSSL."

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 echo
-echo "QUICK CA (v2024.04)"
+echo "QUICK CA (2024.03)"
 echo
 echo " - ca_examine_cert ......... : examine a CA issued certificate."
 echo " - ca_generate_cert ........ : generates a new private key with a signed certificate."

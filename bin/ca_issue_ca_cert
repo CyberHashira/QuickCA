@@ -3,7 +3,7 @@
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
 	echo
-	echo "QUICK CA (v2024.04) || [ ca_issue_ca_cert ]"
+	echo "QUICK CA (2024.03) || [ ca_issue_ca_cert ]"
         echo "This utility lets you issue an issuing CA certificate using your Root CA."
 	echo
         echo "Syntax -"
