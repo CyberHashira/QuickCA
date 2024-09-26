@@ -7,10 +7,14 @@ SAN=""
 
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
-	echo 
-	echo "QUICK CA (2024.03) || [ ca_generate_cert ]"
+	echo
+	echo -e "\e[1;33;1mQUICK CA (2024.09)\e[0m -- [ ca_generate_cert ]"
+	echo
         echo "This utility helps with generating a private key and a CA-signed certificate. It would output the result as a tarball that can be easily moved or transported to another machine."
+	echo
+	echo
         echo "Syntax :-"
+	echo
         echo "ca_generate_cert"
 	echo
         exit 0
@@ -103,30 +107,34 @@ package_certificate() {
 	read CHOICE
 	case $CHOICE in
 		1)
-			openssl crl2pkcs7 -nocrl -certfile $FRIENDLY_NAME.cer -certfile cacert.cer -out $FRIENDLY_NAME.p7b
-			tar czf $FRIENDLY_NAME.tar.gz $FRIENDLY_NAME.key $FRIENDLY_NAME.p7b
-			rm cacert.cer $FRIENDLY_NAME.key $FRIENDLY_NAME.cer cacert.cer $FRIENDLY_NAME.p7b -f
+			openssl crl2pkcs7 -nocrl -certfile $FRIENDLY_NAME/$FRIENDLY_NAME.cer -certfile $FRIENDLY_NAME/cacert.cer -out $FRIENDLY_NAME/$FRIENDLY_NAME.p7b
+			tar czf $FRIENDLY_NAME.tar.gz $FRIENDLY_NAME/*
+			rm $FRIENDLY_NAME/cacert.cer $FRIENDLY_NAME/$FRIENDLY_NAME.key $FRIENDLY_NAME/$FRIENDLY_NAME.cer $FRIENDLY_NAME/$FRIENDLY_NAME.p7b -f
+			rmdir $FRIENDLY_NAME
 			echo
 			echo "${FRIENDLY_NAME}.tar.gz ready for use."
 			;;
 		2)
 			echo "PFX PASSWORD - "
-			openssl pkcs12 -export -inkey $FRIENDLY_NAME.key -in $FRIENDLY_NAME.cer -certfile $ISSUING_CA_PATH/cert/cacert.cer -out $FRIENDLY_NAME.pfx
-			rm cacert.cer $FRIENDLY_NAME.key $FRIENDLY_NAME.cer -f
+			openssl pkcs12 -export -inkey $FRIENDLY_NAME/$FRIENDLY_NAME.key -in $FRIENDLY_NAME/$FRIENDLY_NAME.cer -certfile $ISSUING_CA_PATH/cert/cacert.cer -out $FRIENDLY_NAME.pfx
+			rm $FRIENDLY_NAME/* -f
+			rmdir $FRIENDLY_NAME
 			echo
 			echo "${FRIENDLY_NAME}.pfx ready for use."
 			;;
 		3)
-			tar czf $FRIENDLY_NAME.tar.gz $FRIENDLY_NAME.cer $FRIENDLY_NAME.key cacert.cer
-			rm cacert.cer $FRIENDLY_NAME.cer $FRIENDLY_NAME.key -f
+			tar czf $FRIENDLY_NAME.tar.gz $FRIENDLY_NAME/$FRIENDLY_NAME.cer $FRIENDLY_NAME/$FRIENDLY_NAME.key $FRIENDLY_NAME/cacert.cer
+			rm $FRIENDLY_NAME/* -f
+			rmdir $FRIENDLY_NAME
 			echo
 			echo "${FRIENDLY_NAME}.tar.gz ready for use."
 			;;
 		*)
-			openssl pkcs12 -export -inkey $FRIENDLY_NAME.key -in $FRIENDLY_NAME.cer -certfile $ISSUING_CA_PATH/cert/cacert.cer -out $FRIENDLY_NAME.pfx
-                	openssl crl2pkcs7 -nocrl -certfile $FRIENDLY_NAME.cer -certfile cacert.cer -out $FRIENDLY_NAME.p7b
-                	tar czf $FRIENDLY_NAME.tar.gz $FRIENDLY_NAME.key $FRIENDLY_NAME.cer $FRIENDLY_NAME.pfx cacert.cer $FRIENDLY_NAME.p7b
-			rm cacert.cer $FRIENDLY_NAME.cer $FRIENDLY_NAME.pfx $FRIENDLY_NAME.p7b $FRIENDLY_NAME.key -f
+			openssl pkcs12 -export -inkey $FRIENDLY_NAME/$FRIENDLY_NAME.key -in $FRIENDLY_NAME/$FRIENDLY_NAME.cer -certfile $ISSUING_CA_PATH/cert/cacert.cer -out $FRIENDLY_NAME/$FRIENDLY_NAME.pfx
+                	openssl crl2pkcs7 -nocrl -certfile $FRIENDLY_NAME/$FRIENDLY_NAME.cer -certfile $FRIENDLY_NAME/cacert.cer -out $FRIENDLY_NAME/$FRIENDLY_NAME.p7b
+                	tar czf $FRIENDLY_NAME.tar.gz $FRIENDLY_NAME/$FRIENDLY_NAME.key $FRIENDLY_NAME/$FRIENDLY_NAME.cer $FRIENDLY_NAME/$FRIENDLY_NAME.pfx $FRIENDLY_NAME/cacert.cer $FRIENDLY_NAME/$FRIENDLY_NAME.p7b
+			rm $FRIENDLY_NAME/* -f
+			rmdir $FRIENDLY_NAME
 			echo
 			echo "${FRIENDLY_NAME}.tar.gz ready for use."
 			;;
@@ -160,31 +168,33 @@ then
 	echo "Enter Subject : "
 	dname_input
 	san_input
-	openssl genpkey -quiet -algorithm rsa -pkeyopt rsa_keygen_bits:2048 -pkeyopt rsa_keygen_pubexp:65537 -out $FRIENDLY_NAME.key
+	mkdir $FRIENDLY_NAME
+	openssl genpkey -quiet -algorithm rsa -pkeyopt rsa_keygen_bits:2048 -pkeyopt rsa_keygen_pubexp:65537 -out $FRIENDLY_NAME/$FRIENDLY_NAME.key
 	if [ $? -eq 0 ]
 	then
 
 		if [ -z "$SAN" ]
 		then
-			openssl req -new -subj "${SUBJECT_STRING}" -key $FRIENDLY_NAME.key -out $FRIENDLY_NAME.csr
+			openssl req -new -subj "${SUBJECT_STRING}" -key $FRIENDLY_NAME/$FRIENDLY_NAME.key -out $FRIENDLY_NAME/$FRIENDLY_NAME.csr
 		else
-			openssl req -new -subj "${SUBJECT_STRING}" -key $FRIENDLY_NAME.key -addext "${SAN}" -out $FRIENDLY_NAME.csr
+			openssl req -new -subj "${SUBJECT_STRING}" -key $FRIENDLY_NAME/$FRIENDLY_NAME.key -addext "${SAN}" -out $FRIENDLY_NAME/$FRIENDLY_NAME.csr
 		fi
 
 		if [ $? -ne 0 ]
 		then
-			rm $FRIENDLY_NAME.key
+			rm $FRIENDLY_NAME/$FRIENDLY_NAME.key
+			rmdir $FRIENDLY_NAME
 			exit 1
 		fi
 	else
 		exit 1;
 	fi
 
-	$FULL_PATH/ca_issue_cert $FRIENDLY_NAME.csr $FRIENDLY_NAME.cer
+	$FULL_PATH/ca_issue_cert $FRIENDLY_NAME/$FRIENDLY_NAME.csr $FRIENDLY_NAME/$FRIENDLY_NAME.cer
 	if [ $? -eq 0 ]
 	then
-		rm $FRIENDLY_NAME.csr
-		cp $ISSUING_CA_PATH/cert/cacert.cer .
+		rm $FRIENDLY_NAME/$FRIENDLY_NAME.csr
+		cp $ISSUING_CA_PATH/cert/cacert.cer $FRIENDLY_NAME/
 		package_certificate
 	fi
 else
@@ -198,29 +208,31 @@ else
 	echo "Enter Subject : "
 	dname_input
 	san_input
-	openssl genpkey -quiet -algorithm ec -pkeyopt ec_paramgen_curve:$CURVE -out $FRIENDLY_NAME.key
+	mkdir $FRIENDLY_NAME
+	openssl genpkey -quiet -algorithm ec -pkeyopt ec_paramgen_curve:$CURVE -out $FRIENDLY_NAME/$FRIENDLY_NAME.key
 	if [ $? -eq 0 ]
 	then
 		if [ -z $SAN ]
 		then
-			openssl req -new -subj "${SUBJECT_STRING}" -key $FRIENDLY_NAME.key -out $FRIENDLY_NAME.csr
+			openssl req -new -subj "${SUBJECT_STRING}" -key $FRIENDLY_NAME/$FRIENDLY_NAME.key -out $FRIENDLY_NAME/$FRIENDLY_NAME.csr
 		else
-			openssl req -new -subj "${SUBJECT_STRING}" -key $FRIENDLY_NAME.key -addext "${SAN}" -out $FRIENDLY_NAME.csr
+			openssl req -new -subj "${SUBJECT_STRING}" -key $FRIENDLY_NAME/$FRIENDLY_NAME.key -addext "${SAN}" -out $FRIENDLY_NAME/$FRIENDLY_NAME.csr
 		fi
 
 		if [ $? -ne 0 ]
 		then
-			rm $FRIENDLY_NAME.key
+			rm $FRIENDLY_NAME/$FRIENDLY_NAME.key
+			rmdir $FRIENDLY_NAME
 			exit 1
 		fi
 	else
 		exit 1;
 	fi
-	$FULL_PATH/ca_issue_cert $FRIENDLY_NAME.csr $FRIENDLY_NAME.cer
+	$FULL_PATH/ca_issue_cert $FRIENDLY_NAME/$FRIENDLY_NAME.csr $FRIENDLY_NAME/$FRIENDLY_NAME.cer
 	if [ $? -eq 0 ]
 	then
-		rm $FRIENDLY_NAME.csr
-		cp $ISSUING_CA_PATH/cert/cacert.cer .
+		rm $FRIENDLY_NAME/$FRIENDLY_NAME.csr
+		cp $ISSUING_CA_PATH/cert/cacert.cer $FRIENDLY_NAME/
 		package_certificate
 	fi
 fi

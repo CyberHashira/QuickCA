@@ -3,9 +3,9 @@
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
 	echo
-	echo -e "\e[1;33;1mQUICK CA (2024.09)\e[0m -- [ ca_list_issued_certs ]"
+	echo -e "\e[1;33;1mQUICK CA (2024.09)\e[0m -- [ ca_list_revoked_certs ]"
 	echo
-        echo "This utility displays a list of all active certificates issued by the issuing CA."
+        echo "This utility displays a list of all certificates issued by the issuing CA that are revoked."
         echo
         exit 0
 fi
@@ -18,7 +18,7 @@ then
 	echo
 	exit 1
 else
-	grep V $ISSUING_CA_PATH/data/index.dat
+	grep R $ISSUING_CA_PATH/data/index.dat
 fi
 echo
 

@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ]
+then
+	echo
+        echo -e "\e[1;33;1mQUICK CA (2024.09)\e[0m -- [ ca_get_issuer_cert ]"
+        echo
+        echo "This utility copies Issuing CA certificate to your present location."
+        echo
+        echo
+        echo "Syntax :-"
+        echo
+        echo "ca_get_issuer_cert"
+        echo
+        exit 0
+fi
+
+cp $ISSUING_CA_PATH/cert/$ISSUING_CA_NAME.cer .
+
+if [ $? -eq 0 ]
+then
+	echo $ISSUING_CA_NAME.cer copied.
+fi

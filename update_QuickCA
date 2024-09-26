@@ -1,0 +1,11 @@
+#!/bin/bash
+
+chmod +w $HOME/CA/bin/*
+cp -uv bin/* $HOME/CA/bin
+chmod 500 $HOME/CA/bin/*
+chmod 600 $HOME/CA/quick-ca.*
+cp -uv quick-ca.* $HOME/CA/
+cp -uv check_integrity $HOME/CA/
+$HOME/CA/check_integrity
+
+echo "Quick CA updated."

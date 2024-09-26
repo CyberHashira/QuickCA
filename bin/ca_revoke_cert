@@ -1,34 +1,74 @@
 #!/usr/bin/env bash
 
-if [ "$1" == "-h" ] || [ "$1" == "--help" ]
+if [ "$1" == "-h" ] || [ "$1" == "-H" ] || [ "$1" == "--help" ]
 then
-        echo "[ ca_revoke_cert ]"
+	echo
+	echo -e "\e[1;33;1mQUICK CA (2024.09)\e[0m -- [ ca_revoke_cert ]"
+	echo
         echo "This utility lets you revoke a certificate issued by your Issuing CA."
         echo
+	echo
         echo "Syntax :-"
-        echo "ca_revoke_cert <serial_number>"
-        echo "or"
-        echo "ca_revoke_cert"
+	echo
+        echo "ca_revoke_cert [ SERIAL_OR_FILE_OPTION ]"
+	echo
+	echo "[ OPTIONS ]"
+	echo
+	echo "  -F <cert_file_name> 		: revoke certificate using the certificate filename."
+	echo "  --file <cert_file_name> 	: same as -F."
+	echo
+	echo "  -S <serial>			: revoke certificate using the serial number."
+	echo "  --serial <serial>		: same as -S."
+	echo
+	echo "  -H or --help 			: prints help."
+	echo
+	echo
+        echo "or just run 'ca_revoke_cert'"
+	echo
         exit 0
 fi
+
 
 if [ -z $ISSUING_CA_PATH ] || [ -z $ISSUING_CA_NAME ]
 then
         echo "ISSUING_CA_* environment variable not found. Please execute 'source "$HOME/CA/setenv.sh"'"
         exit 1
-else
+fi
+
+if [ "$1" == "-S" ] || [ "$1" == "--serial" ]
+then
 	openssl ca -passin file:/etc/machine-id -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -gencrl -out $ISSUING_CA_PATH/crl/$ISSUING_CA_NAME.crl
-	if [ -z $1 ]
+	if [ -z $2 ]
 	then
 		echo -n "Serial Number of the certificate to revoke : "
 		read SERIAL_NUMBER
 		openssl ca -passin file:/etc/machine-id -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -revoke $ISSUING_CA_PATH/issued_certs/$SERIAL_NUMBER.pem
 	else
-		openssl ca -passin file:/etc/machine-id -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -revoke $ISSUING_CA_PATH/issued_certs/$1.pem
+		openssl ca -passin file:/etc/machine-id -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -revoke $ISSUING_CA_PATH/issued_certs/$2.pem
 	fi
 	openssl ca -passin file:/etc/machine-id -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -gencrl -out $ISSUING_CA_PATH/crl/$ISSUING_CA_NAME.crl
 	chmod 744 $HOME/CA/web/crl/$ISSUING_CA_NAME.crl
 	cp $ISSUING_CA_PATH/crl/$ISSUING_CA_NAME.crl $HOME/CA/web/crl/
 	chmod 444 $HOME/CA/web/crl/$ISSUING_CA_NAME.crl
+	exit 0
 fi
-echo 
+
+if [ "$1" == "-F" ] || [ "$1" == "--file" ]
+then
+	openssl ca -passin file:/etc/machine-id -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -gencrl -out $ISSUING_CA_PATH/crl/$ISSUING_CA_NAME.crl
+	if [ -z $2 ]
+	then
+		echo -n "Filename of the certificate to revoke : "
+		read FILE_NAME
+		SERIAL=`openssl x509 -in $FILE_NAME -noout -serial | cut -d "=" -f 2`
+		openssl ca -passin file:/etc/machine-id -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -revoke $ISSUING_CA_PATH/issued_certs/$SERIAL.pem
+	else
+		SERIAL=`openssl x509 -in $2 -noout -serial | cut -d "=" -f 2`
+		openssl ca -passin file:/etc/machine-id -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -revoke $ISSUING_CA_PATH/issued_certs/$SERIAL.pem
+	fi
+	openssl ca -passin file:/etc/machine-id -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -gencrl -out $ISSUING_CA_PATH/crl/$ISSUING_CA_NAME.crl
+	chmod 744 $HOME/CA/web/crl/$ISSUING_CA_NAME.crl
+	cp $ISSUING_CA_PATH/crl/$ISSUING_CA_NAME.crl $HOME/CA/web/crl/
+	chmod 444 $HOME/CA/web/crl/$ISSUING_CA_NAME.crl
+	exit 0
+fi

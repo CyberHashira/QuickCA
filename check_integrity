@@ -1,0 +1,10 @@
+#!/bin/bash
+openssl pkeyutl -verify -in quick-ca.sum -digest sha512 -rawin -sigfile quick-ca.sig -inkey quick-ca.cer -certin 2> /dev/null
+
+if [ $? -ne 0 ]
+then
+	echo "Integrity of one or more Quick-CA utility may be compromised."
+else
+	sha512sum -c quick-ca.sum
+fi
+

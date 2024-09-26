@@ -3,14 +3,21 @@
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
 	echo
-	echo "QUICK CA (2024.03) || [ ca_issue_cert ]"
+	echo -e "\e[1;33;1mQUICK CA (2024.09)\e[0m -- [ ca_issue_cert ]"
+	echo
         echo "This utility issues a CA-Signed certificate using a certificate signing request (CSR)."
 	echo
+	echo
         echo "Syntax -"
+	echo
 	echo "ca_issue_cert <csr_file> <certificate_file_name>"
+	echo
 	echo "or"
+	echo
 	echo "ca_issue_cert <csr_file>"
+	echo
 	echo "or"
+	echo
 	echo "ca_issue_cert"
 	echo
         exit 0
@@ -55,8 +62,14 @@ case $OPTION in
 	;;
 esac
 
-echo -n "Validity (days) : "
+echo -n "Validity (days, default-365) : "
 read DAYS
+
+if [ -z "$DAYS" ]
+then
+        DAYS=365
+fi
+
 
 if [ -z $2 ]
 then

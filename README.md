@@ -1,4 +1,4 @@
-# Quick CA v2024.04
+# Quick CA v2024.09
   
   
 ## What is Quick CA?
@@ -17,7 +17,7 @@ QuickCA only requires information relevant to your PKI tasks. It automatically e
 Here's an example for what the directory structure might look like after you finish setting up root and issuing ca.
 
 CA/  
-├── bin			: Contains all executable scripts.  
+├── bin			: Contains all executable scripts.
 ├── myIssuing		: Directory structure for ISSUING CA.  
 │   ├── cert  
 │   ├── crl  
@@ -32,10 +32,11 @@ CA/
 │   ├── data  
 │   ├── issued_certs  
 │   └── private  
-└── web			: Location used for storing an updated CA certificate and CRLs. Can be used as a source for AIA and CDP.  
-    ├── cert  
-    └── crl  
-  
+├── web			: Location used for storing an updated CA certificate and CRLs. Can be used as a source for AIA and CDP.  
+│    ├── cert  
+│    └── crl
+├── check_integrity : checks the integrity of QuickCA scripts.
+└── setenv.sh : sets the required environment variables for QuickCA.
   
   
   
@@ -43,8 +44,32 @@ CA/
   
  - ca_examine_cert ......... : examine a certificate issued by the ISSUING CA.
  - ca_generate_cert ........ : generates a new private key with a CA signed certificate.
+ - ca_get_root_cert ........ : returns your Root CA certificate.
+ - ca_get_issuer_cert ...... : returns your Issuing CA certificate.
  - ca_issue_ca_cert ........ : sign a certificate request for another certificate authority.
  - ca_issue_cert ........... : sign a certificate request.
- - ca_list_issued_certs .... : lists of all certificates issued by the issuing CA.
+ - ca_list_issued_certs .... : list of all certificates issued by the Issuing CA.
+ - ca_list_revoked_certs ... : list of all certificates revoked by your Issuing CA.
  - ca_revoke_cert .......... : revoke an issued certificate and updates the CRL.
  - ca_help ................. : display help.
+ - ca_about ................ : display information about Quick CA.
+   
+
+### Quick-CA Updater
+- If you already have an older version of QuickCA installed, then please use update_QuickCA script found inside the tarball to update the scripts.
+- Updater checks the integrity of all scripts before copying them into your existing QuickCA setup.
+- Expected output as follows :-
+  
+Signature Verified Successfully
+bin/ca_about: OK
+bin/ca_examine_cert: OK
+bin/ca_generate_cert: OK
+bin/ca_get_issuer_cert: OK
+bin/ca_get_root_cert: OK
+bin/ca_help: OK
+bin/ca_issue_ca_cert: OK
+bin/ca_issue_cert: OK
+bin/ca_list_issued_certs: OK
+bin/ca_list_revoked_certs: OK
+bin/ca_revoke_cert: OK
+Quick CA updated.
