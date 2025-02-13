@@ -42,19 +42,19 @@ CA/<br>
   
 ## List of executables and their purpose.
   
- - ca_about ................ : prints information about Quick CA.
- - ca_examine_cert ......... : examine a CA issued certificate.
- - ca_generate_cert ........ : generates a private key and a signed certificate.
- - ca_get_root_cert ........ : returns your Root CA certificate.
- - ca_get_issuer_cert ...... : returns your Issuing CA certificate.
- - ca_get_issued_cert ...... : returns a certified issued by Issuign CA.
- - ca_issue_ca_cert ........ : generates a certificate for another certificate authority.
- - ca_issue_cert ........... : generates a CA signed certificate using a certificate request.
- - ca_list_issued_certs .... : displays a list of all active certificates issued by CA.
- - ca_list_revoked_certs ... : displays a list of all certificates revoked by the Issuing CA.
- - ca_revoke_cert .......... : revokes an issued certificate.
- - ca_verify_cert .......... : checks for the validity of a certificate.
- - ca_help ................. : displays this help.
+<br> - ca_about ................ : prints information about Quick CA.
+<br> - ca_examine_cert ......... : examine a CA issued certificate.
+<br> - ca_generate_cert ........ : generates a private key and a signed certificate.
+<br> - ca_get_root_cert ........ : returns your Root CA certificate.
+<br> - ca_get_issuer_cert ...... : returns your Issuing CA certificate.
+<br> - ca_get_issued_cert ...... : returns a certified issued by Issuign CA.
+<br> - ca_issue_ca_cert ........ : generates a certificate for another certificate authority.
+<br> - ca_issue_cert ........... : generates a CA signed certificate using a certificate request.
+<br> - ca_list_issued_certs .... : displays a list of all active certificates issued by CA.
+<br> - ca_list_revoked_certs ... : displays a list of all certificates revoked by the Issuing CA.
+<br> - ca_revoke_cert .......... : revokes an issued certificate.
+<br> - ca_verify_cert .......... : checks for the validity of a certificate.
+<br> - ca_help ................. : displays this help.
  
 
 ### Quick-CA Updater
