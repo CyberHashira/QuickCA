@@ -42,18 +42,20 @@ CA/<br>
   
 ## List of executables and their purpose.
   
- - ca_examine_cert ......... : examine a certificate issued by the ISSUING CA.
- - ca_generate_cert ........ : generates a new private key with a CA signed certificate.
+ - ca_about ................ : prints information about Quick CA.
+ - ca_examine_cert ......... : examine a CA issued certificate.
+ - ca_generate_cert ........ : generates a private key and a signed certificate.
  - ca_get_root_cert ........ : returns your Root CA certificate.
  - ca_get_issuer_cert ...... : returns your Issuing CA certificate.
- - ca_issue_ca_cert ........ : sign a certificate request for another certificate authority.
- - ca_issue_cert ........... : sign a certificate request.
- - ca_list_issued_certs .... : list of all certificates issued by the Issuing CA.
- - ca_list_revoked_certs ... : list of all certificates revoked by your Issuing CA.
- - ca_revoke_cert .......... : revoke an issued certificate and updates the CRL.
- - ca_help ................. : display help.
- - ca_about ................ : display information about Quick CA.
-   
+ - ca_get_issued_cert ...... : returns a certified issued by Issuign CA.
+ - ca_issue_ca_cert ........ : generates a certificate for another certificate authority.
+ - ca_issue_cert ........... : generates a CA signed certificate using a certificate request.
+ - ca_list_issued_certs .... : displays a list of all active certificates issued by CA.
+ - ca_list_revoked_certs ... : displays a list of all certificates revoked by the Issuing CA.
+ - ca_revoke_cert .......... : revokes an issued certificate.
+ - ca_verify_cert .......... : checks for the validity of a certificate.
+ - ca_help ................. : displays this help.
+ 
 
 ### Quick-CA Updater
 - If you already have an older version of QuickCA installed, then please use update_QuickCA script found inside the tarball to update the scripts.
@@ -64,6 +66,7 @@ Signature Verified Successfully
 bin/ca_about: OK
 bin/ca_examine_cert: OK
 bin/ca_generate_cert: OK
+bin/ca_get_issued_cert: OK
 bin/ca_get_issuer_cert: OK
 bin/ca_get_root_cert: OK
 bin/ca_help: OK
@@ -72,4 +75,5 @@ bin/ca_issue_cert: OK
 bin/ca_list_issued_certs: OK
 bin/ca_list_revoked_certs: OK
 bin/ca_revoke_cert: OK
+bin/ca_verify_cert: OK
 Quick CA updated.
