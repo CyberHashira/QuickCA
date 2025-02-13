@@ -63,17 +63,17 @@ CA/<br>
 - Expected output as follows :-
   
 Signature Verified Successfully
-bin/ca_about: OK
-bin/ca_examine_cert: OK
-bin/ca_generate_cert: OK
-bin/ca_get_issued_cert: OK
-bin/ca_get_issuer_cert: OK
-bin/ca_get_root_cert: OK
-bin/ca_help: OK
-bin/ca_issue_ca_cert: OK
-bin/ca_issue_cert: OK
-bin/ca_list_issued_certs: OK
-bin/ca_list_revoked_certs: OK
-bin/ca_revoke_cert: OK
-bin/ca_verify_cert: OK
+<br>bin/ca_about: OK
+<br>bin/ca_examine_cert: OK
+<br>bin/ca_generate_cert: OK
+<br>bin/ca_get_issued_cert: OK
+<br>bin/ca_get_issuer_cert: OK
+<br>bin/ca_get_root_cert: OK
+<br>bin/ca_help: OK
+<br>bin/ca_issue_ca_cert: OK
+<br>bin/ca_issue_cert: OK
+<br>bin/ca_list_issued_certs: OK
+<br>bin/ca_list_revoked_certs: OK
+<br>bin/ca_revoke_cert: OK
+<br>bin/ca_verify_cert: OK
 Quick CA updated.
