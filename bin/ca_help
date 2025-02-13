@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 echo
-echo -e "\e[1;33;1mQUICK CA (2024.09)\e[0m"
+echo -e "\e[1;33;1mQUICK CA (2025.02)\e[0m"
 echo
 echo -e " - ca_about ................ : \e[1;34mprints information about Quick CA.\e[0m"
 echo -e " - ca_examine_cert ......... : \e[1;34mexamine a CA issued certificate.\e[0m"
 echo -e " - ca_generate_cert ........ : \e[1;34mgenerates a private key and a signed certificate.\e[0m"
 echo -e " - ca_get_root_cert ........ : \e[1;34mreturns your Root CA certificate.\e[0m"
 echo -e " - ca_get_issuer_cert ...... : \e[1;34mreturns your Issuing CA certificate.\e[0m"
+echo -e " - ca_get_issued_cert ...... : \e[1;34mreturns a certified issued by Issuign CA.\e[0m"
 echo -e " - ca_issue_ca_cert ........ : \e[1;34mgenerates a certificate for another certificate authority.\e[0m"
 echo -e " - ca_issue_cert ........... : \e[1;34mgenerates a CA signed certificate using a certificate request.\e[0m"
 echo -e " - ca_list_issued_certs .... : \e[1;34mdisplays a list of all active certificates issued by CA.\e[0m"
 echo -e " - ca_list_revoked_certs ... : \e[1;34mdisplays a list of all certificates revoked by the Issuing CA.\e[0m"
 echo -e " - ca_revoke_cert .......... : \e[1;34mrevokes an issued certificate.\e[0m"
+echo -e " - ca_verify_cert .......... : \e[1;34mchecks for the validity of a certificate.\e[0m"
 echo -e " - ca_help ................. : \e[1;34mdisplays this help.\e[0m"
 echo

@@ -3,7 +3,7 @@
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
 	echo
-	echo -e "\e[1;33;1mQUICK CA (2024.09)\e[0m -- [ ca_list_revoked_certs ]"
+	echo -e "\e[1;33;1mQUICK CA (2025.02)\e[0m -- [ ca_list_revoked_certs ]"
 	echo
         echo "This utility displays a list of all certificates issued by the issuing CA that are revoked."
         echo

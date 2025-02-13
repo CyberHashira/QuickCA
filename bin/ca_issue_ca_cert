@@ -44,6 +44,7 @@ then
 fi
 
 if [ -z $3 ]
+then
 	openssl ca -config "$ROOT_CA_PATH/$ROOT_CA_NAME".cnf -passin file:/etc/machine-id -extensions intermediate_ca -days $2 -notext -md sha256 -in $1 -out OUTPUT.cer
 else
 	openssl ca -config "$ROOT_CA_PATH/$ROOT_CA_NAME".cnf -passin file:/etc/machine-id -extensions intermediate_ca -days $2 -notext -md sha256 -in $1 -out $3.cer

@@ -3,7 +3,7 @@
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
 	echo
-	echo -e "\e[1;33;1mQUICK CA (2024.09)\e[0m -- [ ca_issue_cert ]"
+	echo -e "\e[1;33;1mQUICK CA (2025.02)\e[0m -- [ ca_issue_cert ]"
 	echo
         echo "This utility issues a CA-Signed certificate using a certificate signing request (CSR)."
 	echo

@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
+
 if [ "$1" == "-h" ] || [ "$1" == "-H" ] || [ "$1" == "--help" ]
 then
 	echo
-	echo -e "\e[1;33;1mQUICK CA (2024.09)\e[0m -- [ ca_revoke_cert ]"
+	echo -e "\e[1;33;1mQUICK CA (2025.02)\e[0m -- [ ca_revoke_cert ]"
 	echo
         echo "This utility lets you revoke a certificate issued by your Issuing CA."
         echo
@@ -35,7 +36,7 @@ then
         exit 1
 fi
 
-if [ "$1" == "-S" ] || [ "$1" == "--serial" ]
+if [ "$1" == "-S" ] || [ "$1" == "--serial" ] || [ -z $1 ]
 then
 	openssl ca -passin file:/etc/machine-id -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -gencrl -out $ISSUING_CA_PATH/crl/$ISSUING_CA_NAME.crl
 	if [ -z $2 ]

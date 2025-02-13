@@ -8,7 +8,7 @@ SAN=""
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
 	echo
-	echo -e "\e[1;33;1mQUICK CA (2024.09)\e[0m -- [ ca_generate_cert ]"
+	echo -e "\e[1;33;1mQUICK CA (2025.02)\e[0m -- [ ca_generate_cert ]"
 	echo
         echo "This utility helps with generating a private key and a CA-signed certificate. It would output the result as a tarball that can be easily moved or transported to another machine."
 	echo

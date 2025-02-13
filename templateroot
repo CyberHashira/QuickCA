@@ -78,5 +78,12 @@ keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 crlDistributionPoints = URI:http://WEBLINK:8000/crl/ISSUING_NAME.crl
 authorityInfoAccess = caIssuers;URI:http://WEBLINK:8000/cert/ROOT_NAME.cer
 
+[ ocsp ]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:false
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = OCSPSigning
+
 [ crl_ext ]
 authorityKeyIdentifier=keyid:always

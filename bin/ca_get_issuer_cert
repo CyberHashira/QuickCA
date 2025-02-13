@@ -3,7 +3,7 @@
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
 	echo
-        echo -e "\e[1;33;1mQUICK CA (2024.09)\e[0m -- [ ca_get_issuer_cert ]"
+        echo -e "\e[1;33;1mQUICK CA (2025.02)\e[0m -- [ ca_get_issuer_cert ]"
         echo
         echo "This utility copies Issuing CA certificate to your present location."
         echo
@@ -13,6 +13,14 @@ then
         echo "ca_get_issuer_cert"
         echo
         exit 0
+fi
+
+if [ -z $ISSUING_CA_PATH ] || [ -z $ISSUING_CA_NAME ]
+then
+        echo "ISSUING_CA_* environment variable not found."
+        echo "Please execute 'source $HOME/CA/setenv.sh'"
+        echo
+        exit 1
 fi
 
 cp $ISSUING_CA_PATH/cert/$ISSUING_CA_NAME.cer .

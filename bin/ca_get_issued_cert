@@ -1,0 +1,56 @@
+#!/bin/bash
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ]
+then
+        echo
+        echo -e "\e[1;33;1mQUICK CA (2025.02)\e[0m -- [ ca_get_issued_cert ]"
+        echo
+        echo "This utility is useful for retrieving a certificate issued by an Issuing CA."
+        echo
+        echo
+        echo "Syntax :-"
+        echo
+        echo "ca_get_issued_cert <certificate_serial> <output_certificate_filename>"
+        echo
+	echo "or"
+	echo
+	echo "ca_get_issued_cert"
+        exit 0
+fi
+
+if [ -z $ISSUING_CA_PATH ]
+then
+        echo "ISSUING_CA_* environment variable not found."
+        echo "Please execute 'source $HOME/CA/setenv.sh'"
+        echo
+        exit 1
+fi
+
+SERIAL=''
+CERT_OUT_FILENAME=''
+
+if [ -z $1 ]
+then
+	echo -n "Certificate SERIAL NUMBER : "
+	read SERIAL
+else
+	SERIAL=$1
+fi
+
+
+if [ -z $2 ]
+then
+	echo -n "Output Filename : "
+	read CERT_OUT_FILENAME
+else
+	CERT_OUT_FILENAME=$2
+fi
+
+cp $ISSUING_CA_PATH/issued_certs/$SERIAL.pem $CERT_OUT_FILENAME
+
+
+if [ $? -ne 0 ]
+then
+        echo "failed to "$SERIAL".pem"
+fi
+

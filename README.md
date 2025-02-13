@@ -16,27 +16,27 @@ QuickCA only requires information relevant to your PKI tasks. It automatically e
 ## Directory Structure of Quick CA
 Here's an example for what the directory structure might look like after you finish setting up root and issuing ca.
 
-CA/  
-├── bin			: Contains all executable scripts.
-├── myIssuing		: Directory structure for ISSUING CA.  
-│   ├── cert  
-│   ├── crl  
-│   ├── csr  
-│   ├── data  
-│   ├── issued_certs  
-│   └── private  
-├── myRoot		: Directory structure for ROOT CA.  
-│   ├── cert  
-│   ├── crl  
-│   ├── csr  
-│   ├── data  
-│   ├── issued_certs  
-│   └── private  
-├── web			: Location used for storing an updated CA certificate and CRLs. Can be used as a source for AIA and CDP.  
-│    ├── cert  
-│    └── crl
-├── check_integrity : checks the integrity of QuickCA scripts.
-└── setenv.sh : sets the required environment variables for QuickCA.
+CA/<br>
+├── bin			: Contains all executable scripts. <br>
+├── myIssuing		: Directory structure for ISSUING CA. <br>
+│   ├── cert <br>
+│   ├── crl <br>
+│   ├── csr <br>
+│   ├── data <br>
+│   ├── issued_certs <br>
+│   └── private <br>
+├── myRoot		: Directory structure for ROOT CA. <br>
+│   ├── cert <br>
+│   ├── crl <br>
+│   ├── csr <br>
+│   ├── data <br>
+│   ├── issued_certs <br>
+│   └── private <br>
+├── web			: Location used for storing an updated CA certificate and CRLs. Can be used as a source for AIA and CDP. <br>
+│    ├── cert <br>
+│    └── crl <br>
+├── check_integrity : checks the integrity of QuickCA scripts. <br>
+└── setenv.sh : sets the required environment variables for QuickCA. <br>
   
   
   
