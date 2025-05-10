@@ -3,7 +3,7 @@
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
 	echo
-	echo -e "\e[1;33;1mQUICK CA (2025.02)\e[0m -- [ ca_examine_cert ]"
+	echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_examine_cert ]"
 	echo
 	echo "This utility lets you view a certificate issued by your Issuing CA."
 	echo
@@ -21,6 +21,9 @@ fi
 
 if [ -z $ISSUING_CA_PATH ]
 then
+        echo
+        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_examine_cert ]"
+        echo
 	echo "ISSUING_CA_* environment variable not found."
 	echo "Please execute 'source $HOME/CA/setenv.sh'."
 	echo
@@ -29,6 +32,9 @@ fi
 
 if [ -z "$1" ]
 then
+        echo
+        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_examine_cert ]"
+	echo
         echo -n "Enter serial number of certificate to examine : "
         read SERIAL
         openssl x509 -noout -text -in $ISSUING_CA_PATH/issued_certs/$SERIAL.pem

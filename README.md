@@ -1,4 +1,4 @@
-# Quick CA v2025.02
+# Quick CA v2024.09
   
   
 ## What is Quick CA?
@@ -42,20 +42,18 @@ CA/<br>
   
 ## List of executables and their purpose.
   
-<br> - ca_about ................ : prints information about Quick CA.
-<br> - ca_examine_cert ......... : examine a CA issued certificate.
-<br> - ca_generate_cert ........ : generates a private key and a signed certificate.
-<br> - ca_get_root_cert ........ : returns your Root CA certificate.
-<br> - ca_get_issuer_cert ...... : returns your Issuing CA certificate.
-<br> - ca_get_issued_cert ...... : returns a certified issued by Issuign CA.
-<br> - ca_issue_ca_cert ........ : generates a certificate for another certificate authority.
-<br> - ca_issue_cert ........... : generates a CA signed certificate using a certificate request.
-<br> - ca_list_issued_certs .... : displays a list of all active certificates issued by CA.
-<br> - ca_list_revoked_certs ... : displays a list of all certificates revoked by the Issuing CA.
-<br> - ca_revoke_cert .......... : revokes an issued certificate.
-<br> - ca_verify_cert .......... : checks for the validity of a certificate.
-<br> - ca_help ................. : displays this help.
- 
+ - ca_examine_cert ......... : examine a certificate issued by the ISSUING CA.
+ - ca_generate_cert ........ : generates a new private key with a CA signed certificate.
+ - ca_get_root_cert ........ : returns your Root CA certificate.
+ - ca_get_issuer_cert ...... : returns your Issuing CA certificate.
+ - ca_issue_ca_cert ........ : sign a certificate request for another certificate authority.
+ - ca_issue_cert ........... : sign a certificate request.
+ - ca_list_issued_certs .... : list of all certificates issued by the Issuing CA.
+ - ca_list_revoked_certs ... : list of all certificates revoked by your Issuing CA.
+ - ca_revoke_cert .......... : revoke an issued certificate and updates the CRL.
+ - ca_help ................. : display help.
+ - ca_about ................ : display information about Quick CA.
+   
 
 ### Quick-CA Updater
 - If you already have an older version of QuickCA installed, then please use update_QuickCA script found inside the tarball to update the scripts.
@@ -63,17 +61,15 @@ CA/<br>
 - Expected output as follows :-
   
 Signature Verified Successfully
-<br>bin/ca_about: OK
-<br>bin/ca_examine_cert: OK
-<br>bin/ca_generate_cert: OK
-<br>bin/ca_get_issued_cert: OK
-<br>bin/ca_get_issuer_cert: OK
-<br>bin/ca_get_root_cert: OK
-<br>bin/ca_help: OK
-<br>bin/ca_issue_ca_cert: OK
-<br>bin/ca_issue_cert: OK
-<br>bin/ca_list_issued_certs: OK
-<br>bin/ca_list_revoked_certs: OK
-<br>bin/ca_revoke_cert: OK
-<br>bin/ca_verify_cert: OK
+bin/ca_about: OK
+bin/ca_examine_cert: OK
+bin/ca_generate_cert: OK
+bin/ca_get_issuer_cert: OK
+bin/ca_get_root_cert: OK
+bin/ca_help: OK
+bin/ca_issue_ca_cert: OK
+bin/ca_issue_cert: OK
+bin/ca_list_issued_certs: OK
+bin/ca_list_revoked_certs: OK
+bin/ca_revoke_cert: OK
 Quick CA updated.

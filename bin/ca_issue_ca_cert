@@ -3,7 +3,7 @@
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
 	echo
-	echo -e "\e[1;33;1mQUICK CA (2024.09)\e[0m -- [ ca_issue_ca_cert ]"
+	echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_issue_ca_cert ]"
 	echo
         echo "This utility lets you issue an issuing CA certificate using your Root CA."
 	echo
@@ -21,6 +21,9 @@ fi
 
 if [ -z $ROOT_CA_PATH ] || [ -z $ROOT_CA_NAME ]
 then
+        echo
+        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_issue_ca_cert ]"
+        echo
 	echo "ROOT_CA_* environment variable not found."
 	echo "Please execute 'source $HOME/CA/setenv.sh'."
 	echo
@@ -29,7 +32,11 @@ fi
 
 if [ -z $1 ] || [ ! -f $1 ]
 then
-	echo "can't read/find certificate request file."
+        echo
+        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_issue_ca_cert ]"
+        echo
+	echo "Certificate request filename is required."
+	echo
 	echo "See ca_issue_ca_cert -h or ca_issue_ca_cert --help"
 	echo
 	exit 1
@@ -37,7 +44,11 @@ fi
 
 if [ -z $2 ]
 then
+        echo
+        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_issue_ca_cert ]"
+        echo
 	echo "Missing the value for validity period."
+	echo
 	echo "See ca_issue_ca_cert -h or ca_issue_ca_cert --help"
 	echo
 	exit 1
@@ -49,5 +60,5 @@ then
 else
 	openssl ca -config "$ROOT_CA_PATH/$ROOT_CA_NAME".cnf -passin file:/etc/machine-id -extensions intermediate_ca -days $2 -notext -md sha256 -in $1 -out $3.cer
 fi
-echo
 
+echo

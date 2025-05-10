@@ -56,6 +56,7 @@ echo
 echo "Select key type."
 echo "(1) for RSA. (default)"
 echo "(2) for ECDSA."
+echo "{3} for MLDSA."
 echo -n "Key Type : "
 read KEY_TYPE
 
@@ -97,6 +98,27 @@ then
 	fi
 	chmod 400 $CA_PATH/private/$ROOT_CA_NAME.key
 fi
+
+if [ $KEY_TYPE -eq 3 ]
+then
+	echo "  - MLDSA44 (default)"
+	echo "  - MLDSA65"
+	echo "  - MLDSA87"
+	echo -n "  MLDSA size : "
+	read MLDSA_SIZE
+	if [ -z "$MLDSA_SIZE" ]
+	then
+		MLDSA_SIZE="MLDSA44"
+	fi
+
+	openssl genpkey -algorithm $MLDSA_SIZE -quiet | openssl pkcs8 -passout file:/etc/machine-id -topk8 -out $CA_PATH/private/$ROOT_CA_NAME.key
+	if [ $? -ne 0 ]
+	then
+		exit 1
+	fi
+	chmod 400 $CA_PATH/private/$ROOT_CA_NAME.key
+fi
+
 echo "Private key for $ROOT_CA_NAME generated successfully."
 echo "---------------------------------------------------------------------"
 echo

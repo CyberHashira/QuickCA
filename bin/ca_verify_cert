@@ -3,7 +3,7 @@
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
 	echo
-	echo -e "\e[1;33;1mQUICK CA (2025.02)\e[0m -- [ ca_verify_cert ]"
+	echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_verify_cert ]"
 	echo
 	echo "This utility allows you to verify the validity of a certificate against the Issuing CA."
 	echo
@@ -21,6 +21,9 @@ fi
 
 if [ -z $ISSUING_CA_PATH ] || [ -z $ISSUING_CA_NAME ]
 then
+        echo
+        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_verify_cert ]"
+	echo
 	echo "ISSUING_CA_* environment variable not found."
 	echo "Please execute 'source $HOME/CA/setenv.sh'."
 	echo
@@ -29,6 +32,9 @@ fi
 
 if [ -z "$1" ]
 then
+        echo
+        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_verify_cert ]"
+	echo
         echo -n "Enter certificate filename to verify : "
         read CERT_FILE
         openssl verify -CAfile $ISSUING_CA_PATH/cert/cacert.cer -CRLfile $ISSUING_CA_PATH/crl/$ISSUING_CA_NAME.crl -crl_check $CERT_FILE
@@ -37,6 +43,8 @@ else
 	then
 		openssl verify -CAfile $ISSUING_CA_PATH/cert/cacert.cer -CRLfile $ISSUING_CA_PATH/crl/$ISSUING_CA_NAME.crl -crl_check $1
 	else
+	        echo
+	        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_verify_cert ]"
 		echo "Certificate not found or incorrect option passed."
 	fi
 fi

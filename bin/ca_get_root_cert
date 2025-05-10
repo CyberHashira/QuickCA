@@ -3,7 +3,7 @@
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
         echo
-        echo -e "\e[1;33;1mQUICK CA (2025.02)\e[0m -- [ ca_get_root_cert ]"
+        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_get_root_cert ]"
         echo
         echo "This utility copies Root CA certificate to your present location."
         echo
@@ -17,6 +17,9 @@ fi
 
 if [ -z $ROOT_CA_PATH ] || [ -z $ROOT_CA_NAME ]
 then
+        echo
+        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_get_root_cert ]"
+        echo
         echo "ROOT_CA_* environment variable not found. Please execute 'source "$HOME/CA/setenv.sh"'"
         exit 1
 fi
@@ -26,5 +29,9 @@ cp $ROOT_CA_PATH/cert/$ROOT_CA_NAME.cer .
 
 if [ $? -eq 0 ]
 then
-	echo $ROOT_CA_NAME.cer copied.
+        echo
+        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_get_root_cert ]"
+        echo
+	echo $ROOT_CA_NAME.cer copied to your current directory.
+	echo
 fi

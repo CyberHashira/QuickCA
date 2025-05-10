@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 echo
-echo -e "\e[1;33;1mQUICK CA (2025.02)\e[0m"
+echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m"
 echo
 echo -e " - ca_about ................ : \e[1;34mprints information about Quick CA.\e[0m"
 echo -e " - ca_examine_cert ......... : \e[1;34mexamine a CA issued certificate.\e[0m"
