@@ -55,6 +55,7 @@ organizationalUnitName          = Organizational Unit Name
 commonName                      = Common Name
 emailAddress                    = Email Address
 
+commonName_default		= COMMON_NAME
 countryName_default             = COUNTRY
 stateOrProvinceName_default     = STATE
 localityName_default            = LOCATION
@@ -67,23 +68,22 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 basicConstraints = critical, CA:true, pathlen:1
-crlDistributionPoints = URI:http://WEBLINK:8000/crl/ROOT_NAME.crl
-
+crlDistributionPoints = URI:ROOTCDP
+authorityInfoAccess = caIssuers;URI:ROOTAIA
+certificatePolicies = @polsect
 
 [ intermediate_ca ]
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
-crlDistributionPoints = URI:http://WEBLINK:8000/crl/ISSUING_NAME.crl
-authorityInfoAccess = caIssuers;URI:http://WEBLINK:8000/cert/ROOT_NAME.cer
+crlDistributionPoints = URI:SUBCACDP
+authorityInfoAccess = caIssuers;URI:SUBCAAIA
+certificatePolicies = @polsect
 
-[ ocsp ]
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid:always,issuer
-basicConstraints = CA:false
-keyUsage = nonRepudiation, digitalSignature, keyEncipherment
-extendedKeyUsage = OCSPSigning
+[polsect]
+policyIdentifier = 1.3.6.1.5.5.7.2.1
+CPS.1 = ROOTCPS
 
 [ crl_ext ]
 authorityKeyIdentifier=keyid:always

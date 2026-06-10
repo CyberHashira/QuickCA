@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+
+revokeReason=""
+ask_reason() {
+	echo "Select reason for revoking this certificate."
+	echo "unspecified ............ : 0"
+	echo "keyCompromise .......... : 1"
+	echo "CACompromise ........... : 2"
+	echo "affiliationChanged ..... : 3"
+	echo "superseded ............. : 4"
+	echo "cessationOfOperation ... : 5"
+	echo "certificateHold ........ : 6"
+	echo "removeFromCRL .......... : 7"
+	echo
+	echo -n "REASON (defaults to 0) : "
+	read choice
+
+	case $choice in
+		1) revokeReason="keyCompromise" ;;
+		2) revokeReason="CACompromise" ;;
+		3) revokeReason="affiliationChanged" ;;
+		4) revokeReason="superseded" ;;
+		5) revokeReason="cessationOfOperation" ;;
+		6) revokeReason="certificateHold" ;;
+		7) revokeReason="removeFromCRL" ;;
+		0) revokeReason="unspecified" ;; 
+		*) revokeReason="unspecified" ;;
+	esac
+}
+
+
+if [ "$1" == "-h" ] || [ "$1" == "-H" ] || [ "$1" == "--help" ]
+then
+	echo
+	echo -e "\e[1;33;1mQUICK CA (`cat $HOME/CA/bin/VERSION`)\e[0m -- [ ca_revoke_root_issued_cert ]"
+	echo
+        echo "This utility lets you revoke a certificate issued by the ROOT CA."
+        echo
+	echo
+        echo "Syntax :-"
+	echo
+        echo "ca_revoke_root_issued_cert [ SERIAL_OR_FILE_OPTION ]"
+	echo
+	echo "[ OPTIONS ]"
+	echo
+	echo "  -F <cert_file_name> 		: revoke certificate using the certificate filename."
+	echo "  --file <cert_file_name> 	: same as -F."
+	echo
+	echo "  -S <serial>			: revoke certificate using the serial number."
+	echo "  --serial <serial>		: same as -S."
+	echo
+	echo "  -H or --help 			: prints help."
+	echo
+	echo
+        echo "or just run 'ca_revoke_root_issued_cert'"
+	echo
+        exit 0
+fi
+
+
+if [ -z $ROOT_CA_PATH ] || [ -z $ROOT_CA_NAME ]
+then
+        echo
+        echo -e "\e[1;33;1mQUICK CA (`cat $HOME/CA/bin/VERSION`)\e[0m -- [ ca_revoke_root_issued_cert ]"
+        echo "ROOT_CA_* environment variable not found. Please execute 'source "$HOME/CA/setenv.sh"'"
+        exit 1
+fi
+
+
+if [ "$1" == "-S" ] || [ "$1" == "--serial" ] || [ -z $1 ]
+then
+	REVOKE_CERT=""
+        echo
+        echo -e "\e[1;33;1mQUICK CA (`cat $HOME/CA/bin/VERSION`)\e[0m -- [ ca_revoke_root_issued_cert ]"
+	echo
+        openssl ca -passin file:/etc/machine-id -config $ROOT_CA_PATH/$ROOT_CA_NAME.cnf -gencrl -out $ROOT_CA_PATH/crl/$ROOT_CA_NAME.crl
+	if [ -z $2 ]
+	then
+		echo -n "Serial Number of the certificate to revoke : "
+		read SERIAL_NUMBER
+		ask_reason
+		openssl ca -passin file:/etc/machine-id -config $ROOT_CA_PATH/$ROOT_CA_NAME.cnf -crl_reason $revokeReason -revoke $ROOT_CA_PATH/issued_certs/$SERIAL_NUMBER.pem
+		REVOKE_CERT=$SERIAL_NUMBER.pem
+	else
+		ask_reason
+		openssl ca -passin file:/etc/machine-id -config $ROOT_CA_PATH/$ROOT_CA_NAME.cnf  -crl_reason $revokeReason -revoke $ROOT_CA_PATH/issued_certs/$2.pem
+		REVOKE_CERT=$2.pem
+	fi
+	openssl ca -passin file:/etc/machine-id -config $ROOT_CA_PATH/$ROOT_CA_NAME.cnf -gencrl -out $ROOT_CA_PATH/crl/$ROOT_CA_NAME.crl
+	chmod 744 $HOME/CA/web/crl/$ROOT_CA_NAME.crl
+	cp $ROOT_CA_PATH/crl/$ROOT_CA_NAME.crl $HOME/CA/web/crl/
+	chmod 444 $HOME/CA/web/crl/$ROOT_CA_NAME.crl
+	mv $ROOT_CA_PATH/issued_certs/$REVOKE_CERT $ROOT_CA_PATH/revoked_certs
+	exit 0
+fi
+
+if [ "$1" == "-F" ] || [ "$1" == "--file" ]
+then
+        echo
+        echo -e "\e[1;33;1mQUICK CA (`cat $HOME/CA/bin/VERSION`)\e[0m -- [ ca_revoke_root_issued_cert ]"
+	echo
+	openssl ca -passin file:/etc/machine-id -config $ROOT_CA_PATH/$ROOT_CA_NAME.cnf -gencrl -out $ROOT_CA_PATH/crl/$ROOT_CA_NAME.crl
+	if [ -z $2 ]
+	then
+	        echo -n "Filename of the certificate to revoke : "
+		read FILE_NAME
+		SERIAL=`openssl x509 -in $FILE_NAME -noout -serial | cut -d "=" -f 2`
+		ask_reason
+		openssl ca -passin file:/etc/machine-id -config $ROOT_CA_PATH/$ROOT_CA_NAME.cnf -crl_reason $revokeReason -revoke $ROOT_CA_PATH/issued_certs/$SERIAL.pem
+	else
+		SERIAL=`openssl x509 -in $2 -noout -serial | cut -d "=" -f 2`
+		ask_reason
+		openssl ca -passin file:/etc/machine-id -config $ROOT_CA_PATH/$ROOT_CA_NAME.cnf -crl_reason $revokeReason -revoke $ROOT_CA_PATH/issued_certs/$SERIAL.pem
+	fi
+	openssl ca -passin file:/etc/machine-id -config $ROOT_CA_PATH/$ROOT_CA_NAME.cnf -gencrl -out $ROOT_CA_PATH/crl/$ROOT_CA_NAME.crl
+	chmod 744 $HOME/CA/web/crl/$ROOT_CA_NAME.crl
+	cp $ROOT_CA_PATH/crl/$ROOT_CA_NAME.crl $HOME/CA/web/crl/
+	chmod 444 $HOME/CA/web/crl/$ROOT_CA_NAME.crl
+	mv $ROOT_CA_PATH/issued_certs/$SERIAL.pem $ROOT_CA_PATH/revoked_certs
+	exit 0
+fi

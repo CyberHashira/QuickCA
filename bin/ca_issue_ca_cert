@@ -3,7 +3,7 @@
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
 	echo
-	echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_issue_ca_cert ]"
+	echo -e "\e[1;33;1mQUICK CA (`cat $HOME/CA/bin/VERSION`)\e[0m -- [ ca_issue_ca_cert ]"
 	echo
         echo "This utility lets you issue an issuing CA certificate using your Root CA."
 	echo
@@ -22,7 +22,7 @@ fi
 if [ -z $ROOT_CA_PATH ] || [ -z $ROOT_CA_NAME ]
 then
         echo
-        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_issue_ca_cert ]"
+        echo -e "\e[1;33;1mQUICK CA (`cat $HOME/CA/bin/VERSION`)\e[0m -- [ ca_issue_ca_cert ]"
         echo
 	echo "ROOT_CA_* environment variable not found."
 	echo "Please execute 'source $HOME/CA/setenv.sh'."
@@ -33,7 +33,7 @@ fi
 if [ -z $1 ] || [ ! -f $1 ]
 then
         echo
-        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_issue_ca_cert ]"
+        echo -e "\e[1;33;1mQUICK CA (`cat $HOME/CA/bin/VERSION`)\e[0m -- [ ca_issue_ca_cert ]"
         echo
 	echo "Certificate request filename is required."
 	echo
@@ -45,7 +45,7 @@ fi
 if [ -z $2 ]
 then
         echo
-        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_issue_ca_cert ]"
+        echo -e "\e[1;33;1mQUICK CA (`cat $HOME/CA/bin/VERSION`)\e[0m -- [ ca_issue_ca_cert ]"
         echo
 	echo "Missing the value for validity period."
 	echo

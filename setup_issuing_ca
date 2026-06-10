@@ -13,7 +13,7 @@ read ISSUING_CA_NAME
 ISSUING_CA_PATH=$HOME/CA
 CA_PATH=$ISSUING_CA_PATH/$ISSUING_CA_NAME
 
-mkdir -p $CA_PATH/{private,cert,issued_certs,crl,csr,data}
+mkdir -p $CA_PATH/{private,cert,issued_certs,crl,csr,revoked_certs,data}
 chmod 700 $CA_PATH
 chmod 700 $CA_PATH/private
 openssl rand -hex -out $CA_PATH/private/.rand 16
@@ -24,34 +24,69 @@ chmod 600 $CA_PATH/data/*
 echo "1000" > $CA_PATH/data/crl_number
 echo "directories and files for "$ISSUING_CA_NAME" setup successfully.".
 echo "---------------------------------------------------------------------"
-echo 
-
-WEB_URL=`hostname`
+echo
 
 cp $script_path/templateissuing $CA_PATH
-ISSUING_CNF=$CA_PATH/$ISSUING_CA_NAME
-mv $CA_PATH/templateissuing $ISSUING_CNF.cnf
+ISSUING_CNF=$CA_PATH/$ISSUING_CA_NAME.cnf
+mv $CA_PATH/templateissuing $ISSUING_CNF
 echo "Preparing configuration file for "$ISSUING_CA_NAME"."
-echo -n "Country (C)		: " 
+echo -n "Country (C)		: "
 read ISSUING_C
-echo -n "State (ST)		: " 
+echo -n "State (ST)		: "
 read ISSUING_ST
-echo -n "Location (L)		: " 
+echo -n "Location (L)		: "
 read ISSUING_L
-echo -n "Organization (O)	: " 
+echo -n "Organization (O)	: "
 read ISSUING_O
-echo -n "Org. Unit (OU)		: " 
+echo -n "Org. Unit (OU)		: "
 read ISSUING_OU
 
-sed -i 's@ISSUING_HOME@'"$CA_PATH"'@' $ISSUING_CNF.cnf
-sed -i 's@ISSUING_NAME@'"$ISSUING_CA_NAME"'@' $ISSUING_CNF.cnf
-sed -i 's@COUNTRY@'"$ISSUING_C"'@' $ISSUING_CNF.cnf
-sed -i 's@STATE@'"$ISSUING_ST"'@' $ISSUING_CNF.cnf
-sed -i 's@LOCATION@'"$ISSUING_L"'@' $ISSUING_CNF.cnf
-sed -i 's@ORGANIZATION@'"$ISSUING_O"'@' $ISSUING_CNF.cnf
-sed -i 's@ORG_UNIT@'"$ISSUING_OU"'@' $ISSUING_CNF.cnf
-sed -i 's@ISSUING_NAME@'"$ISSUING_CA_NAME"'@' $ISSUING_CNF.cnf
-sed -i 's@WEBLINK@'"$WEB_URL"'@' $ISSUING_CNF.cnf
+echo -n "CRL Distribution Point URL (hit enter to ignore) : "
+read SUBCACDP
+if [ -z "$SUBCACDP" ]
+then
+	SUBCACDP="sptth://NOCDP"
+fi
+
+
+echo -n "Authority Information Access URL (hit enter to ignore) : "
+read SUBCAAIA
+if [ -z "$SUBCAAIA" ]
+then
+	SUBCAAIA="sptth://NOAIA"
+fi
+
+
+echo -n "Certificate Policy Statement URL (hit enter to ignore) : "
+read SUBCACPS
+if [ -z "$SUBCACPS" ]
+then
+	SUBCACPS="sptth://NOCPS"
+fi
+
+
+echo -n "OCSP URL (hit enter to ignore) :  "
+read SUBCAOCSP
+if [ -z "$SUBCAOCSP" ]
+then
+	SUBCAOCSP="sptth://NOOCSP"
+fi
+
+sed -i 's@ISSUING_HOME@'"$CA_PATH"'@' $ISSUING_CNF
+sed -i 's@ISSUING_NAME@'"$ISSUING_CA_NAME"'@' $ISSUING_CNF
+sed -i 's@COMMON_NAME@'"$ISSUING_CA_NAME"'@' $ISSUING_CNF
+sed -i 's@COUNTRY@'"$ISSUING_C"'@' $ISSUING_CNF
+sed -i 's@STATE@'"$ISSUING_ST"'@' $ISSUING_CNF
+sed -i 's@LOCATION@'"$ISSUING_L"'@' $ISSUING_CNF
+sed -i 's@ORGANIZATION@'"$ISSUING_O"'@' $ISSUING_CNF
+sed -i 's@ORG_UNIT@'"$ISSUING_OU"'@' $ISSUING_CNF
+sed -i 's@ISSUING_NAME@'"$ISSUING_CA_NAME"'@' $ISSUING_CNF
+sed -i 's@SUBCACDP@'"$SUBCACDP"'@' $ISSUING_CNF
+sed -i 's@SUBCAAIA@'"$SUBCAAIA"'@' $ISSUING_CNF
+sed -i 's@SUBCACPS@'"$SUBCACPS"'@' $ISSUING_CNF
+sed -i 's@SUBCAOCSP@'"$SUBCAOCSP"'@' $ISSUING_CNF
+
+
 
 echo "Configuration file for "$ISSUING_CA_NAME" ready."
 echo "---------------------------------------------------------------------"
@@ -149,9 +184,13 @@ then
 fi
 
 ROOT_CNF=$ROOT_CA_PATH/$ROOT_CA_NAME.cnf
-sed -i 's@ISSUING_NAME@'"$ISSUING_CA_NAME"'@' $ROOT_CNF
-sed -i 's@ROOT_NAME@'"$ROOT_CA_NAME"'@' $ISSUING_CNF.cnf
-openssl req -config $ROOT_CNF -new -sha256 -key $CA_PATH/private/$ISSUING_CA_NAME.key -passin file:/etc/machine-id -out $CA_PATH/csr/$ISSUING_CA_NAME.csr
+sed -i 's@SUBCACDP@'"$SUBCACDP"'@' $ROOT_CNF
+sed -i 's@SUBCAAIA@'"$SUBCAAIA"'@' $ROOT_CNF
+sed -i 's@SUBCACPS@'"$SUBCACPS"'@' $ROOT_CNF
+sed -i 's@SUBCAOCSP@'"$SUBCAOCSP"'@' $ROOT_CNF
+sed -i 's@ROOT_NAME@'"$ROOT_CA_NAME"'@' $ISSUING_CNF
+
+openssl req -config $ISSUING_CNF -new -sha256 -key $CA_PATH/private/$ISSUING_CA_NAME.key -batch -passin file:/etc/machine-id -out $CA_PATH/csr/$ISSUING_CA_NAME.csr
 if [ $? -ne 0 ]
 then
 	exit 1
@@ -167,22 +206,25 @@ chmod 444 $CA_PATH/cert/$ISSUING_CA_NAME.cer
 openssl verify -CAfile $ROOT_CA_PATH/cert/$ROOT_CA_NAME.cer $CA_PATH/cert/$ISSUING_CA_NAME.cer
 cat $CA_PATH/cert/$ISSUING_CA_NAME.cer $ROOT_CA_PATH/cert/$ROOT_CA_NAME.cer > $CA_PATH/cert/cacert.cer
 chmod 444 $CA_PATH/cert/cacert.cer
-openssl ca -config $ISSUING_CNF.cnf -gencrl -passin file:/etc/machine-id -out $CA_PATH/crl/$ISSUING_CA_NAME.crl
+openssl ca -config $ISSUING_CNF -gencrl -passin file:/etc/machine-id -out $CA_PATH/crl/$ISSUING_CA_NAME.crl
 if [ $? -ne 0 ]
 then
         exit 1
 fi
 echo
-echo "-----------------------------------------------------------"
-echo "Don't forget to export these environment variables."
-echo "export ISSUING_CA_NAME="$ISSUING_CA_NAME
-echo "export ISSUING_CA_PATH="$CA_PATH
+echo -e "\e[32m < ------------------- IMPORTANT NOTE ----------------------- >"
 echo
-echo "or execute 'source $ISSUING_CA_PATH/setenv.sh'"
-echo 'export ISSUING_CA_NAME='$ISSUING_CA_NAME >> $ISSUING_CA_PATH/setenv.sh
-echo 'export ISSUING_CA_PATH='$CA_PATH >> $ISSUING_CA_PATH/setenv.sh
-echo 'export PATH='$PATH:$ISSUING_CA_PATH/bin >> $ISSUING_CA_PATH/setenv.sh
-echo "-----------------------------------------------------------"
+echo -e "Don't forget to export these environment variables."
+echo
+echo -e "export ISSUING_CA_NAME="$ISSUING_CA_NAME
+echo -e "export ISSUING_CA_PATH="$CA_PATH
+echo
+echo -e "or execute 'source $ISSUING_CA_PATH/setenv.sh'"
+echo -e 'export ISSUING_CA_NAME='$ISSUING_CA_NAME >> $ISSUING_CA_PATH/setenv.sh
+echo -e 'export ISSUING_CA_PATH='$CA_PATH >> $ISSUING_CA_PATH/setenv.sh
+echo -e 'export PATH='$PATH:$ISSUING_CA_PATH/bin >> $ISSUING_CA_PATH/setenv.sh
+echo
+echo -e " < ------------------- IMPORTANT NOTE ----------------------- > \e[0m"
 echo
 echo "ISSUING CA : ["$ISSUING_CA_NAME"] setup successfully."
 chmod 700 $ISSUING_CA_PATH/setenv.sh

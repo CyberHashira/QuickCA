@@ -1,18 +1,18 @@
 # Quick CA v2025.05
-  
-  
+
+ 
 ### What is Quick CA?
 Quick CA is a bash script that automates the creation of Root CA and an Issuing CA using the OpenSSL utility. This script is capable of setting up a two-tier PKI within two minutes. It is designed to work on Linux operating systems with OpenSSL 3.x. This script may not function as expected with OpenSSL 1.1.1 due to its utilization of OpenSSL 3.x command syntax.
-  
-  
-  
-  
+ 
+ 
+ 
+ 
 ### How does it work?
 QuickCA only requires information relevant to your PKI tasks. It automatically executes the necessary OpenSSL commands to complete these tasks. The script always stores all CA-related files inside the $HOME/CA directory. The private key is encrypted using the /etc/machine-id of your Linux machine. Additionally, the templates for Root CA and Issuing CA are auto-generated based on the user input during setup.
-  
-  
-  
-  
+ 
+ 
+ 
+ 
 ### Directory Structure of Quick CA
 Here's an example for what the directory structure might look like after you finish setting up root and issuing ca.
 
@@ -37,9 +37,9 @@ CA/<br>
 │    └── crl <br>
 ├── check_integrity : checks the integrity of QuickCA scripts. <br>
 └── setenv.sh : sets the required environment variables for QuickCA. <br>
-  
-  
-  
+ 
+ 
+ 
 ### List of executables and their purpose.
 
  - ca_about ................ : prints information about Quick CA.

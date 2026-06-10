@@ -2,6 +2,16 @@
 clear
 current_path=`pwd`
 script_path=`dirname $0`
+CA_PATH=$HOME/CA
+
+if [ -z $ISSUING_CA_PATH ]
+then
+	echo "Path to the Issuing CA not found."
+	echo -n "ISSUING CA NAME : "
+	read ISSUING_CA_NAME
+	ISSUING_CA_PATH=$HOME/CA/$ISSUING_CA_NAME
+fi
+
 echo
 echo "- This script automates the creation of OpenSSL based Online Certificate Status Protocol (OCSP)."
 echo "- You're only required to input some information during setup."
@@ -10,55 +20,50 @@ echo
 echo -n "Enter OCSP Server name : "
 read OCSP_NAME
 
-OCSP_PATH=$HOME/CA
-CA_PATH=$OCSP_PATH/$OCSP_NAME
+CA_PATH=$HOME/CA
+OCSP_PATH=$CA_PATH/$OCSP_NAME
 
-mkdir -p $CA_PATH/{private,cert,issued_certs,crl,csr,data}
-chmod 700 $CA_PATH
-chmod 700 $CA_PATH/private
-openssl rand -hex -out $CA_PATH/private/.rand 16
-chmod 600 $CA_PATH/private/.rand
-touch $CA_PATH/data/index.dat
-openssl rand -hex -out $CA_PATH/data/serial.dat 8
-chmod 600 $CA_PATH/data/*
-echo "1000" > $CA_PATH/data/crl_number
+mkdir -p $OCSP_PATH/{private,cert,csr}
+chmod 700 $OCSP_PATH
+chmod 700 $OCSP_PATH/private
 echo "directories and files for "$OCSP_NAME" setup successfully.".
 echo "---------------------------------------------------------------------"
-echo 
+echo
 
 WEB_URL=`hostname`
 
-cp $script_path/templateissuing $CA_PATH
-ISSUING_CNF=$CA_PATH/$OCSP_NAME
-mv $CA_PATH/templateissuing $ISSUING_CNF.cnf
-echo "Preparing configuration file for "$OCSP_NAME"."
-echo -n "Country (C)		: " 
-read ISSUING_C
-echo -n "State (ST)		: " 
-read ISSUING_ST
-echo -n "Location (L)		: " 
-read ISSUING_L
-echo -n "Organization (O)	: " 
-read ISSUING_O
-echo -n "Org. Unit (OU)		: " 
-read ISSUING_OU
+cp $script_path/templateocsp $OCSP_PATH
+OCSP_CNF=$OCSP_PATH/$OCSP_NAME.cnf
+mv $OCSP_PATH/templateocsp $OCSP_CNF
 
-sed -i 's@ISSUING_HOME@'"$CA_PATH"'@' $ISSUING_CNF.cnf
-sed -i 's@ISSUING_NAME@'"$OCSP_NAME"'@' $ISSUING_CNF.cnf
-sed -i 's@COUNTRY@'"$ISSUING_C"'@' $ISSUING_CNF.cnf
-sed -i 's@STATE@'"$ISSUING_ST"'@' $ISSUING_CNF.cnf
-sed -i 's@LOCATION@'"$ISSUING_L"'@' $ISSUING_CNF.cnf
-sed -i 's@ORGANIZATION@'"$ISSUING_O"'@' $ISSUING_CNF.cnf
-sed -i 's@ORG_UNIT@'"$ISSUING_OU"'@' $ISSUING_CNF.cnf
-sed -i 's@ISSUING_NAME@'"$OCSP_NAME"'@' $ISSUING_CNF.cnf
-sed -i 's@WEBLINK@'"$WEB_URL"'@' $ISSUING_CNF.cnf
+ISSUING_CNF=$ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf
+
+echo "Preparing configuration file for "$OCSP_NAME"."
+echo -n "Country (C)		: "
+read  OCSP_C
+echo -n "State (ST)		: "
+read OCSP_ST
+echo -n "Location (L)		: "
+read OCSP_L
+echo -n "Organization (O)	: "
+read OCSP_O
+echo -n "Org. Unit (OU)		: "
+read OCSP_OU
+
+sed -i 's@COMMON_NAME@'"$OCSP_NAME"'@' $OCSP_CNF
+sed -i 's@COUNTRY@'"$OCSP_C"'@' $OCSP_CNF
+sed -i 's@STATE@'"$OCSP_ST"'@' $OCSP_CNF
+sed -i 's@LOCATION@'"$OCSP_L"'@' $OCSP_CNF
+sed -i 's@ORGANIZATION@'"$OCSP_O"'@' $OCSP_CNF
+sed -i 's@ORG_UNIT@'"$OCSP_OU"'@' $OCSP_CNF
 
 echo "Configuration file for "$OCSP_NAME" ready."
 echo "---------------------------------------------------------------------"
-echo 
+echo
 echo "Select key type."
 echo "(1) for RSA. (default)"
 echo "(2) for ECDSA."
+echo "(3) for MLDSA."
 echo -n "Key Type : "
 read KEY_TYPE
 
@@ -75,12 +80,12 @@ then
 	then
 		RSA_KEY_SIZE=2048
 	fi
-	openssl genpkey -algorithm rsa -pkeyopt rsa_keygen_bits:$RSA_KEY_SIZE -quiet | openssl pkcs8 -passout file:/etc/machine-id -topk8 -out $CA_PATH/private/$OCSP_NAME.key
+	openssl genpkey -algorithm rsa -pkeyopt rsa_keygen_bits:$RSA_KEY_SIZE -quiet | openssl pkcs8 -passout file:/etc/machine-id -topk8 -out $OCSP_PATH/private/$OCSP_NAME.key
 	if [ $? -ne 0 ]
 	then
 		exit 1
 	fi
-	chmod 400 $CA_PATH/private/$OCSP_NAME.key
+	chmod 400 $OCSP_PATH/private/$OCSP_NAME.key
 fi
 
 if [ $KEY_TYPE -eq 2 ]
@@ -91,13 +96,33 @@ then
 	then
 		EC_CURVE="secp384r1"
 	fi
-	openssl genpkey -algorithm ec -pkeyopt ec_paramgen_curve:$EC_CURVE | openssl pkcs8 -passout file:/etc/machine-id -topk8 -out $CA_PATH/private/$OCSP_NAME.key
+	openssl genpkey -algorithm ec -pkeyopt ec_paramgen_curve:$EC_CURVE | openssl pkcs8 -passout file:/etc/machine-id -topk8 -out $OCSP_PATH/private/$OCSP_NAME.key
 	if [ $? -ne 0 ]
 	then
 		exit 1
 	fi
-	chmod 400 $CA_PATH/private/$OCSP_NAME.key
+	chmod 400 $OCSP_PATH/private/$OCSP_NAME.key
 fi
+
+if [ $KEY_TYPE -eq 3 ]
+then
+	echo "  - MLDSA44 (default)"
+	echo "  - MLDSA65"
+	echo "  - MLDSA87"
+	echo -n "  MLDSA size : "
+	read MLDSA_SIZE
+	if [ -z "$MLDSA_SIZE" ]
+	then
+		MLDSA_SIZE="MLDSA44"
+	fi
+	openssl genpkey -algorithm $MLDSA_SIZE -quiet | openssl pkcs8 -passout file:/etc/machine-id -topk8 -out $OCSP_PATH/private/$OCSP_NAME.key
+	if [ $? -ne 0 ]
+	then
+		exit 1
+	fi
+	chmod 400 $OCSP_PATH/private/$OCSP_NAME.key
+fi
+
 echo "Private key for $OCSP_NAME generated successfully."
 echo "---------------------------------------------------------------------"
 echo
@@ -109,64 +134,51 @@ then
 	VALIDITY_DAYS=1825
 fi
 
-if [[ -z "${ROOT_CA_NAME}" ]]
+if [[ -z "${ISSUING_CA_NAME}" ]]
 then
-	echo -n "Root CA name : "
-	read ROOT_CA_NAME
+	echo -n "Issuing CA name : "
+	read ISSUING_CA_NAME
 fi
-if [[ -z "${ROOT_CA_PATH}" ]]
+if [[ -z "${ISSUING_CA_PATH}" ]]
 then
-	echo -n "Root CA Path : "
-	read ROOT_CA_PATH
-fi
-
-if [ $ROOT_CA_PATH == "." ]
-then
-        ROOT_CA_PATH=$PWD/$ROOT_CA_NAME
+	echo -n "Issuing CA Path : "
+	read ISSUING_CA_PATH
 fi
 
-ROOT_CNF=$ROOT_CA_PATH/$ROOT_CA_NAME.cnf
-sed -i 's@ISSUING_NAME@'"$OCSP_NAME"'@' $ROOT_CNF
-sed -i 's@ROOT_NAME@'"$ROOT_CA_NAME"'@' $ISSUING_CNF.cnf
-openssl req -config $ROOT_CNF -new -sha256 -key $CA_PATH/private/$OCSP_NAME.key -passin file:/etc/machine-id -out $CA_PATH/csr/$OCSP_NAME.csr
+openssl req -config $OCSP_CNF -new -batch -sha256 -key $OCSP_PATH/private/$OCSP_NAME.key -passin file:/etc/machine-id -out $OCSP_PATH/csr/$OCSP_NAME.csr
 if [ $? -ne 0 ]
 then
 	exit 1
 fi
 
-openssl ca -config $ROOT_CNF -batch -passin file:/etc/machine-id -extensions intermediate_ca -days $VALIDITY_DAYS -notext -md sha256 -in $CA_PATH/csr/$OCSP_NAME.csr -out $CA_PATH/cert/$OCSP_NAME.cer
+openssl ca -config $ISSUING_CNF -batch -passin file:/etc/machine-id -extensions ocsp -days $VALIDITY_DAYS -notext -md sha256 -in $OCSP_PATH/csr/$OCSP_NAME.csr -out $OCSP_PATH/cert/$OCSP_NAME.cer
 if [ $? -ne 0 ]
 then
         exit 1
 fi
 
-chmod 444 $CA_PATH/cert/$OCSP_NAME.cer
-openssl verify -CAfile $ROOT_CA_PATH/cert/$ROOT_CA_NAME.cer $CA_PATH/cert/$OCSP_NAME.cer
-cat $CA_PATH/cert/$OCSP_NAME.cer $ROOT_CA_PATH/cert/$ROOT_CA_NAME.cer > $CA_PATH/cert/cacert.cer
-chmod 444 $CA_PATH/cert/cacert.cer
-openssl ca -config $ISSUING_CNF.cnf -gencrl -passin file:/etc/machine-id -out $CA_PATH/crl/$OCSP_NAME.crl
+chmod 444 $OCSP_PATH/cert/$OCSP_NAME.cer
+openssl verify -CAfile $ISSUING_CA_PATH/cert/cacert.cer $OCSP_PATH/cert/$OCSP_NAME.cer
+cat $ISSUING_CA_PATH/cert/$ISSUING_CA_NAME.cer $ROOT_CA_PATH/cert/$ROOT_CA_NAME.cer > $OCSP_PATH/cert/cacert.cer
+chmod 444 $OCSP_PATH/cert/cacert.cer
+
 if [ $? -ne 0 ]
 then
         exit 1
 fi
 echo
-echo "-----------------------------------------------------------"
-echo "Don't forget to export these environment variables."
-echo "export OCSP_NAME="$OCSP_NAME
-echo "export OCSP_PATH="$CA_PATH
+echo -e "\e[32m < ------------------- IMPORTANT NOTE ----------------------- >"
+echo -e "Don't forget to export these environment variables."
+echo -e "export OCSP_NAME="$OCSP_NAME
+echo -e "export CA_PATH="$OCSP_PATH
 echo
-echo "or execute 'source $OCSP_PATH/setenv.sh'"
-echo 'export OCSP_NAME='$OCSP_NAME >> $OCSP_PATH/setenv.sh
-echo 'export OCSP_PATH='$CA_PATH >> $OCSP_PATH/setenv.sh
-echo 'export PATH='$PATH:$OCSP_PATH/bin >> $OCSP_PATH/setenv.sh
-echo "-----------------------------------------------------------"
+echo -e "or execute 'source $CA_PATH/setenv.sh'"
+echo -e 'export OCSP_NAME='$OCSP_NAME >> $CA_PATH/setenv.sh
+echo -e 'export CA_PATH='$OCSP_PATH >> $CA_PATH/setenv.sh
+echo -e 'export PATH='$PATH:$CA_PATH/bin >> $CA_PATH/setenv.sh
+echo -e " < ------------------- IMPORTANT NOTE ----------------------- > \e[0m"
 echo
-echo "ISSUING CA : ["$OCSP_NAME"] setup successfully."
-chmod 700 $OCSP_PATH/setenv.sh
-mkdir $OCSP_PATH/bin
-cp $script_path/bin/* $OCSP_PATH/bin
-cp $CA_PATH/cert/$OCSP_NAME.cer $OCSP_PATH/web/cert
-chmod 444 $OCSP_PATH/web/cert/$OCSP_NAME.cer
-cp $CA_PATH/crl/$OCSP_NAME.crl $OCSP_PATH/web/crl
-chmod 444 $OCSP_PATH/web/crl/$OCSP_NAME.crl
-chmod 500 $OCSP_PATH/bin/*
+echo "OCSP : ["$OCSP_NAME"] setup successfully."
+chmod 700 $CA_PATH/setenv.sh
+cp $OCSP_PATH/cert/$OCSP_NAME.cer $CA_PATH/web/cert
+chmod 444 $CA_PATH/web/cert/$OCSP_NAME.cer

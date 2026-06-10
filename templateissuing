@@ -56,6 +56,7 @@ organizationalUnitName          = Organizational Unit Name
 commonName                      = Common Name
 emailAddress                    = Email Address
 
+commonName_default		= COMMON_NAME
 countryName_default             = COUNTRY
 stateOrProvinceName_default     = STATE
 localityName_default            = LOCATION
@@ -69,8 +70,9 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer
 keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth, emailProtection
-crlDistributionPoints = URI:http://WEBLINK:8000/crl/ISSUING_NAME.crl
+crlDistributionPoints = URI:SUBCACDP
 authorityInfoAccess = @aia
+certificatePolicies = @polsect
 
 [ server_cert ]
 basicConstraints = CA:FALSE
@@ -78,8 +80,9 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer:always
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
-crlDistributionPoints = URI:http://WEBLINK:8000/crl/ISSUING_NAME.crl
+crlDistributionPoints = URI:SUBCACDP
 authorityInfoAccess = @aia
+certificatePolicies = @polsect
 
 [ codesigning_cert ]
 basicConstraints = CA:FALSE
@@ -87,20 +90,25 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer:always
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = codeSigning
-crlDistributionPoints = URI:http://WEBLINK:8000/crl/ISSUING_NAME.crl
+crlDistributionPoints = URI:SUBCACDP
 authorityInfoAccess = @aia
+certificatePolicies = @polsect
 
 [ crl_ext ]
 authorityKeyIdentifier=keyid:always
-authorityInfoAccess = caIssuers;URI:http://WEBLINK:8000/cert/ISSUING_NAME.cer
+authorityInfoAccess = caIssuers;URI:SUBCAAIA
 
 [ ocsp ]
 basicConstraints = CA:FALSE
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer
-keyUsage = critical, digitalSignature
+keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = critical, OCSPSigning
 
 [ aia ]
-caIssuers;URI = http://WEBLINK:8000/cert/ISSUING_NAME.cer
-OCSP;URI = http://WEBLINK-ocsp.lab
+caIssuers;URI = SUBCAAIA
+OCSP;URI = SUBCAOCSP
+
+[ polsect ]
+policyIdentifier = 1.3.6.1.5.5.7.2.1
+CPS.1 = sptth://SUBCACPS

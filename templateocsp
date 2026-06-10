@@ -1,0 +1,21 @@
+[ req ]
+distinguished_name  = req_distinguished_name
+string_mask         = utf8only
+default_md          = sha256
+
+[ req_distinguished_name ]
+countryName                     = Country Name (2 letter code)
+stateOrProvinceName             = State or Province Name
+localityName                    = Locality Name
+0.organizationName              = Organization Name
+organizationalUnitName          = Organizational Unit Name
+commonName                      = Common Name
+emailAddress                    = Email Address
+
+commonName_default              = COMMON_NAME
+countryName_default             = COUNTRY
+stateOrProvinceName_default     = STATE
+localityName_default            = LOCATION
+0.organizationName_default      = ORGANIZATION
+organizationalUnitName_default  = ORG_UNIT
+emailAddress_default            =

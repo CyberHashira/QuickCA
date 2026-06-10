@@ -11,7 +11,7 @@ read ROOT_CA_NAME
 
 ROOT_CA_PATH=$HOME/CA
 CA_PATH=$ROOT_CA_PATH/$ROOT_CA_NAME
-mkdir -p $CA_PATH/{private,cert,issued_certs,crl,csr,data}
+mkdir -p $CA_PATH/{private,cert,issued_certs,crl,revoked_certs,csr,data}
 chmod 700 $CA_PATH
 chmod 700 $CA_PATH/private
 openssl rand -hex -out $CA_PATH/private/.rand 16
@@ -28,27 +28,52 @@ cp $script_path/templateroot $CA_PATH
 ROOT_CNF=$CA_PATH/$ROOT_CA_NAME
 mv $CA_PATH/templateroot $ROOT_CNF.cnf
 echo "Preparing configuration file for "$ROOT_CA_NAME
-echo -n "Country (C)		: " 
+echo -n "Country (C)		: "
 read ROOT_C
-echo -n "State (ST)		: " 
+echo -n "State (ST)		: "
 read ROOT_ST
-echo -n "Location (L)		: " 
+echo -n "Location (L)		: "
 read ROOT_L
-echo -n "Organization (O)	: " 
+echo -n "Organization (O)	: "
 read ROOT_O
-echo -n "Org. Unit (OU)		: " 
+echo -n "Org. Unit (OU)		: "
 read ROOT_OU
-WEB_URL=`hostname`
+echo
+echo
+echo -n "CRL Distribution Point URL (Enter to ignore) : "
+read CDP
+if [ -z "$CDP" ]
+then
+	CDP="sptth://NOCDP"
+fi
+
+echo -n "Authority Information Access URL (Enter to ignore): "
+read AIA
+if [ -z "$AIA" ]
+then
+	AIA="sptth://NOAIA"
+fi
+
+echo -n "Certificate Practice Statement URL (Enter to ignore): "
+read CPS
+if [ -z "$CPS" ]
+then
+	CPS="sptth://CPS"
+fi
 
 sed -i 's@ROOT_HOME@'"$CA_PATH"'@' $ROOT_CNF.cnf
 sed -i 's@ROOT_NAME@'"$ROOT_CA_NAME"'@' $ROOT_CNF.cnf
+sed -i 's@COMMON_NAME@'"$ROOT_CA_NAME"'@' $ROOT_CNF.cnf
 sed -i 's@COUNTRY@'"$ROOT_C"'@' $ROOT_CNF.cnf
 sed -i 's@STATE@'"$ROOT_ST"'@' $ROOT_CNF.cnf
 sed -i 's@LOCATION@'"$ROOT_L"'@' $ROOT_CNF.cnf
 sed -i 's@ORGANIZATION@'"$ROOT_O"'@' $ROOT_CNF.cnf
 sed -i 's@ORG_UNIT@'"$ROOT_OU"'@' $ROOT_CNF.cnf
 sed -i 's@ROOT_NAME@'"$ROOT_CA_NAME"'@' $ROOT_CNF.cnf
-sed -i 's@WEBLINK@'"$WEB_URL"'@' $ROOT_CNF.cnf
+sed -i 's@ROOTCDP@'"$CDP"'@' $ROOT_CNF.cnf
+sed -i 's@ROOTAIA@'"$AIA"'@' $ROOT_CNF.cnf
+sed -i 's@ROOTCPS@'"$CPS"'@' $ROOT_CNF.cnf
+
 
 echo "Configuration file for "$ROOT_CA_NAME" ready."
 echo "---------------------------------------------------------------------"
@@ -129,7 +154,7 @@ then
 	VALIDITY_DAYS=3650
 fi
 
-openssl req -config $ROOT_CNF.cnf -key $CA_PATH/private/$ROOT_CA_NAME.key -passin file:/etc/machine-id -new -x509 -extensions root_ca -days $VALIDITY_DAYS -out $CA_PATH/cert/$ROOT_CA_NAME.cer
+openssl req -config $ROOT_CNF.cnf -key $CA_PATH/private/$ROOT_CA_NAME.key -passin file:/etc/machine-id -new -x509 -batch -extensions root_ca -days $VALIDITY_DAYS -out $CA_PATH/cert/$ROOT_CA_NAME.cer
 if [ $? -ne 0 ]
 then
         exit 1
@@ -141,18 +166,24 @@ if [ $? -ne 0 ]
 then
         exit 1
 fi
+
 echo
 echo
 echo
-echo "-----------------------------------------------------------"
-echo "Don't forget to export these environment variables."
-echo "export ROOT_CA_NAME="$ROOT_CA_NAME
-echo "export ROOT_CA_PATH="$CA_PATH
+echo -e "\e[32m < ------------------- IMPORTANT NOTE ----------------------- > "
 echo
-echo "or execute 'source $ROOT_CA_PATH/setenv.sh'"
-echo 'export ROOT_CA_NAME='$ROOT_CA_NAME >> $ROOT_CA_PATH/setenv.sh
-echo 'export ROOT_CA_PATH='$CA_PATH >> $ROOT_CA_PATH/setenv.sh
-echo "-----------------------------------------------------------"
+echo -e "Don't forget to export these environment variables."
+echo 
+echo -e "export ROOT_CA_NAME="$ROOT_CA_NAME
+echo -e "export ROOT_CA_PATH="$CA_PATH
+echo
+echo -e "or execute 'source $ROOT_CA_PATH/setenv.sh'"
+echo -e 'export ROOT_CA_NAME='$ROOT_CA_NAME >> $ROOT_CA_PATH/setenv.sh
+echo -e 'export ROOT_CA_PATH='$CA_PATH >> $ROOT_CA_PATH/setenv.sh
+echo
+echo -e "< ------------------- IMPORTANT NOTE ----------------------- > \e[0m"
+echo
+echo
 echo "ROOT CA : ["$ROOT_CA_NAME"] setup successfully."
 mkdir -p $ROOT_CA_PATH/web/{cert,crl}
 chmod 755 $ROOT_CA_PATH/web -R

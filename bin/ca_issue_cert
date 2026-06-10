@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-if [ "$1" == "-h" ] || [ "$1" == "--help" ]
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] || [ -z $1 ]
 then
 	echo
-	echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_issue_cert ]"
+	echo -e "\e[1;33;1mQUICK CA (`cat $HOME/CA/bin/VERSION`)\e[0m -- [ ca_issue_cert ]"
 	echo
         echo "This utility issues a CA-Signed certificate using a certificate signing request (CSR)."
 	echo
@@ -28,17 +28,17 @@ fi
 if [ -z $ISSUING_CA_PATH ] || [ -z $ISSUING_CA_NAME ]
 then
         echo
-        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_issue_cert ]"
+        echo -e "\e[1;33;1mQUICK CA (`cat $HOME/CA/bin/VERSION`)\e[0m -- [ ca_issue_cert ]"
         echo
         echo "ISSUING_CA_PATH environment variable not found. Please execute 'source "$HOME/CA/setenv.sh"'"
 	echo
         exit 1
 fi
 
-if [ -z $1 ] || [ ! -f $1 ]
+if [ ! -f $1 ]
 then
         echo
-        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_issue_cert ]"
+        echo -e "\e[1;33;1mQUICK CA (`cat $HOME/CA/bin/VERSION`)\e[0m -- [ ca_issue_cert ]"
         echo
 	echo "can't read/find certificate request file."
 	echo
@@ -82,9 +82,20 @@ fi
 if [ -z $2 ]
 then
 	openssl ca -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -batch -passin file:/etc/machine-id -extensions ${CERTIFICATE_TYPE} -days $DAYS -notext -md sha256 -in $1 -out OUTPUT.cer
-	echo "Certificate request signed. See OUTPUT.cer"
+	if [ $? -eq 0 ]
+	then
+		echo "Certificate request signed. See OUTPUT.cer"
+	else
+		echo "Failed to generate a certificate."
+		exit 1
+	fi
 else
 	openssl ca -config $ISSUING_CA_PATH/$ISSUING_CA_NAME.cnf -batch -passin file:/etc/machine-id -extensions ${CERTIFICATE_TYPE} -days $DAYS -notext -md sha256 -in $1 -out $2
+	if [ $? -eq 0 ]
+	then
+		echo "Certificate request signed."
+	else
+		echo "Failed to the signed certificate request."
+		exit 1
+	fi
 fi
-
-echo

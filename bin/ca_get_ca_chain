@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
 	echo
-        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_get_ca_chain ]"
+        echo -e "\e[1;33;1mQUICK CA (`cat $HOME/CA/bin/VERSION`)\e[0m -- [ ca_get_ca_chain ]"
         echo
         echo "This utility copies the CA certificate chain to your present location."
         echo
@@ -18,7 +18,7 @@ fi
 if [ -z $ISSUING_CA_PATH ] || [ -z $ISSUING_CA_NAME ]
 then
         echo
-        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_get_ca_chain ]"
+        echo -e "\e[1;33;1mQUICK CA (`cat $HOME/CA/bin/VERSION`)\e[0m -- [ ca_get_ca_chain ]"
         echo
         echo "ISSUING_CA_* environment variable not found."
         echo "Please execute 'source $HOME/CA/setenv.sh'"
@@ -31,7 +31,7 @@ cp $ISSUING_CA_PATH/cert/cacert.cer .
 if [ $? -eq 0 ]
 then
         echo
-        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_get_ca_chain ]"
+        echo -e "\e[1;33;1mQUICK CA (`cat $HOME/CA/bin/VERSION`)\e[0m -- [ ca_get_ca_chain ]"
         echo
 	echo cacert.cer copied to your current directory.
 	echo

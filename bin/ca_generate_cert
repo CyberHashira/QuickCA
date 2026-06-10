@@ -8,7 +8,7 @@ SAN=""
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
 	echo
-	echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_generate_cert ]"
+	echo -e "\e[1;33;1mQUICK CA (`cat $HOME/CA/bin/VERSION`)\e[0m -- [ ca_generate_cert ]"
 	echo
         echo "This utility helps with generating a private key and a CA-signed certificate. It would output the result as a tarball that can be easily moved or transported to another machine."
 	echo
@@ -23,7 +23,7 @@ fi
 if [ -z $ISSUING_CA_PATH ]
 then
         echo
-        echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_generate_cert ]"
+        echo -e "\e[1;33;1mQUICK CA (`cat $HOME/CA/bin/VERSION`)\e[0m -- [ ca_generate_cert ]"
         echo
 	echo "ISSUING_CA_* environment variable not found."
         echo "Please execute 'source $HOME/CA/setenv.sh'"
@@ -119,7 +119,7 @@ package_certificate() {
 			;;
 		2)
 			echo "PFX PASSWORD - "
-			openssl pkcs12 -export -inkey $FRIENDLY_NAME/$FRIENDLY_NAME.key -in $FRIENDLY_NAME/$FRIENDLY_NAME.cer -certfile $ISSUING_CA_PATH/cert/cacert.cer -out $FRIENDLY_NAME.pfx
+			openssl pkcs12 -export -inkey $FRIENDLY_NAME/$FRIENDLY_NAME.key -in $FRIENDLY_NAME/$FRIENDLY_NAME.cer -certfile $ISSUING_CA_PATH/cert/cacert.cer -out $FRIENDLY_NAME.pfx -pbmac1_pbkdf2
 			rm $FRIENDLY_NAME/* -f
 			rmdir $FRIENDLY_NAME
 			echo
@@ -133,7 +133,7 @@ package_certificate() {
 			echo "${FRIENDLY_NAME}.tar.gz ready for use."
 			;;
 		*)
-			openssl pkcs12 -export -inkey $FRIENDLY_NAME/$FRIENDLY_NAME.key -in $FRIENDLY_NAME/$FRIENDLY_NAME.cer -certfile $ISSUING_CA_PATH/cert/cacert.cer -out $FRIENDLY_NAME/$FRIENDLY_NAME.pfx
+			openssl pkcs12 -export -inkey $FRIENDLY_NAME/$FRIENDLY_NAME.key -in $FRIENDLY_NAME/$FRIENDLY_NAME.cer -certfile $ISSUING_CA_PATH/cert/cacert.cer -out $FRIENDLY_NAME/$FRIENDLY_NAME.pfx -pbmac1_pbkdf2
                 	openssl crl2pkcs7 -nocrl -certfile $FRIENDLY_NAME/$FRIENDLY_NAME.cer -certfile $FRIENDLY_NAME/cacert.cer -out $FRIENDLY_NAME/$FRIENDLY_NAME.p7b
                 	tar czf $FRIENDLY_NAME.tar.gz $FRIENDLY_NAME/$FRIENDLY_NAME.key $FRIENDLY_NAME/$FRIENDLY_NAME.cer $FRIENDLY_NAME/$FRIENDLY_NAME.pfx $FRIENDLY_NAME/cacert.cer $FRIENDLY_NAME/$FRIENDLY_NAME.p7b
 			rm $FRIENDLY_NAME/* -f
@@ -145,7 +145,7 @@ package_certificate() {
 }
 
 echo
-echo -e "\e[1;33;1mQUICK CA (2025.05)\e[0m -- [ ca_generate_cert ]"
+echo -e "\e[1;33;1mQUICK CA (`cat $HOME/CA/bin/VERSION`)\e[0m -- [ ca_generate_cert ]"
 echo
 
 echo -n "Friendly Name : "
@@ -154,6 +154,7 @@ echo
 echo "Type of key you want to use : "
 echo "1. RSA (default)."
 echo "2. ECDSA."
+echo "3. ML-DSA."
 echo -n "Option : "
 read OPTION
 
@@ -204,12 +205,13 @@ then
 		cp $ISSUING_CA_PATH/cert/cacert.cer $FRIENDLY_NAME/
 		package_certificate
 	fi
-else
-	echo -n "Curve (default secp256k1) : "
+elif [ $OPTION -eq 2 ]
+then
+	echo -n "Curve (default secp384r1) : "
 	read CURVE
 	if [ -z "$CURVE" ]
 	then
-		CURVE="secp256k1"
+		CURVE="secp384r1"
 	fi
 	echo
 	echo "Enter Subject : "
@@ -242,5 +244,45 @@ else
 		cp $ISSUING_CA_PATH/cert/cacert.cer $FRIENDLY_NAME/
 		package_certificate
 	fi
+elif [ $OPTION -eq 3 ]
+then
+	echo "  - MLDSA44 (default)"
+	echo "  - MLDSA65"
+	echo "  - MLDSA87"
+	echo -n "  MLDSA size : "
+	read MLDSA_SIZE
+	if [ -z "$MLDSA_SIZE" ]
+	then
+		MLDSA_SIZE="MLDSA44"
+        fi
+	echo
+	echo "Enter Subject : "
+	dname_input
+	san_input
+	mkdir $FRIENDLY_NAME
+        openssl genpkey -algorithm $MLDSA_SIZE -quiet -out $FRIENDLY_NAME/$FRIENDLY_NAME.key
+	if [ $? -eq 0 ]
+	then
+		if [ -z $SAN ]
+		then
+			openssl req -new -subj "${SUBJECT_STRING}" -key $FRIENDLY_NAME/$FRIENDLY_NAME.key -out $FRIENDLY_NAME/$FRIENDLY_NAME.csr
+		else
+			openssl req -new -subj "${SUBJECT_STRING}" -key $FRIENDLY_NAME/$FRIENDLY_NAME.key -addext "${SAN}" -out $FRIENDLY_NAME/$FRIENDLY_NAME.csr
+		fi
+
+		if [ $? -ne 0 ]
+		then
+			rm $FRIENDLY_NAME/$FRIENDLY_NAME.key
+			rmdir $FRIENDLY_NAME
+		fi
+	else
+		exit 1
+	fi
+	$FULL_PATH/ca_issue_cert $FRIENDLY_NAME/$FRIENDLY_NAME.csr $FRIENDLY_NAME/$FRIENDLY_NAME.cer
+	if [ $? -eq 0 ]
+	then
+		rm $FRIENDLY_NAME/$FRIENDLY_NAME.csr
+		cp $ISSUING_CA_PATH/cert/cacert.cer $FRIENDLY_NAME/
+		package_certificate
+	fi
 fi
-echo
